@@ -73,9 +73,8 @@ public class App {
 
 
         int maxDetail = 10;
-        String csvFile = hdfsUrl + "input/localhost.csv";
-//        String collect = getStream(csvFile);
-//        System.out.println(collect);
+//        String csvFile = hdfsUrl + "input/localhost.csv";
+        String csvFile = "hdfs://localhost:8020/user/lambda/localhost.csv";
 
         String outputPath = hdfsUrl + "output/";
 
@@ -226,8 +225,9 @@ public class App {
 
         Map<String, Object> data = new HashMap<>();
         data.put("data", gridBoxes);
-        BufferedWriter writer = new BufferedWriter(new FileWriter(filepath, true));
-        objectMapper.writeValue(writer, data);
+        System.out.println(data.toString());
+//        BufferedWriter writer = new BufferedWriter(new FileWriter(filepath, true));
+//        objectMapper.writeValue(writer, data);
     }
 }
 

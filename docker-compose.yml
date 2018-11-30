@@ -48,12 +48,13 @@ services:
     - "7077:7077"
     environment:
     - INIT_DAEMON_STEP=false
+    - SPARK_DRIVER_HOST=192.168.1.104
     volumes:
       - ./data/spark/:/opt/spark-data
 
   spark-worker-1:
     image: bde2020/spark-worker:2.3.2-hadoop2.7
-    container_name: spark-worker
+    container_name: spark-worker-1
     depends_on:
       - spark-master
     ports:
@@ -63,6 +64,42 @@ services:
     volumes:
       - ./data/spark/:/opt/spark-data
 
+  namenode:
+    image: bde2020/hadoop-namenode:1.1.0-hadoop2.8-java8
+    container_name: namenode
+    volumes:
+    - ./data/namenode:/hadoop/dfs/name
+    environment:
+    - CLUSTER_NAME=test
+    - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    healthcheck:
+      interval: 5s
+      retries: 100
+    networks:
+    - net
+    ports:
+    - 50070:50070
+    - 8020:8020
+
+  datanode:
+    image: bde2020/hadoop-datanode:1.1.0-hadoop2.8-java8
+    container_name: datanode
+    volumes:
+    - ./data/datanode:/hadoop/dfs/data
+    environment:
+    - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    depends_on:
+      namenode:
+        condition: service_healthy
+    healthcheck:
+      interval: 5s
+      retries: 100
+    networks:
+    - net
+    ports:
+    - 50075:50075
+
 networks:
   net:
     driver: bridge
+    external: true
