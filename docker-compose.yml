@@ -49,8 +49,7 @@ services:
     environment:
     - INIT_DAEMON_STEP=false
     volumes:
-      - ./data/apps:/opt/spark-apps
-      - ./data/input:/opt/spark-data
+      - ./data/spark/:/opt/spark-data
 
   spark-worker-1:
     image: bde2020/spark-worker:2.3.2-hadoop2.7
@@ -62,8 +61,7 @@ services:
     environment:
       - "SPARK_MASTER=spark://spark-master:7077"
     volumes:
-      - ./data/apps:/opt/spark-apps
-      - ./data/input:/opt/spark-data
+      - ./data/spark/:/opt/spark-data
 
 networks:
   net:

@@ -31,12 +31,17 @@ import sensors.utils.TimestampComparator;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class App {
 
@@ -46,15 +51,31 @@ public class App {
         test();
     }
 
+    public static String getStream(String path) {
+        try (BufferedReader br = Files.newBufferedReader(Paths.get(path))) {
+            Stream<String>  stream = br.lines();
+            String collect = stream.collect(Collectors.joining(", "));
+            return collect;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void test() throws IOException, URISyntaxException {
 
-        String sparkMasterUrl = "local[*]";
+//        String sparkMasterUrl = "local[*]";
+        String sparkMasterUrl = "spark://spark-master:7077";
 
-        String hdfsUrl = "/Users/apssouza/Projetos/java/lambda-arch/data/";
+//        String hdfsUrl = "/Users/apssouza/Projetos/java/lambda-arch/data/spark/";
+
+        String hdfsUrl = "/opt/spark-data/";
+
 
 
         int maxDetail = 10;
         String csvFile = hdfsUrl + "input/localhost.csv";
+//        String collect = getStream(csvFile);
+//        System.out.println(collect);
 
         String outputPath = hdfsUrl + "output/";
 
@@ -96,20 +117,19 @@ public class App {
      * @return A set containing all data from the CSV file as Measurements
      */
     private static JavaRDD<Measurement> csvToMeasurements(SQLContext sqlContext, String csvFile) {
-        Dataset<Row> dataFrame = sqlContext.read().format("csv").option("header", "true").load(csvFile);
+        Dataset<Row> dataFrame = sqlContext.read()
+                .format("csv")
+                .option("header", "true")
+                .load(csvFile);
 
-        return dataFrame.javaRDD().map(
-                new Function<Row, Measurement>() {
-                    @Override
-                    public Measurement call(Row row) throws Exception {
-                        LocalDateTime time = LocalDateTime.parse(row.getString(row.fieldIndex("timestamp")), DateTimeFormatter.ISO_DATE_TIME);
-                        Double latitude = Double.parseDouble(row.getString(row.fieldIndex("latitude")));
-                        Double longitude = Double.parseDouble(row.getString(row.fieldIndex("longitude")));
-                        Coordinate coordinate = new Coordinate(latitude, longitude);
-                        return new Measurement(coordinate, time);
-                    }
-                }
-        );
+        return dataFrame.javaRDD()
+                .map((Function<Row, Measurement>) row -> {
+                    LocalDateTime time = LocalDateTime.parse(row.getString(row.fieldIndex("timestamp")), DateTimeFormatter.ISO_DATE_TIME);
+                    Double latitude = Double.parseDouble(row.getString(row.fieldIndex("latitude")));
+                    Double longitude = Double.parseDouble(row.getString(row.fieldIndex("longitude")));
+                    Coordinate coordinate = new Coordinate(latitude, longitude);
+                    return new Measurement(coordinate, time);
+                });
 
     }
 
