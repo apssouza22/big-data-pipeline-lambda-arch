@@ -53,7 +53,7 @@ public class App {
 
     public static String getStream(String path) {
         try (BufferedReader br = Files.newBufferedReader(Paths.get(path))) {
-            Stream<String>  stream = br.lines();
+            Stream<String> stream = br.lines();
             String collect = stream.collect(Collectors.joining(", "));
             return collect;
         } catch (IOException e) {
@@ -62,23 +62,24 @@ public class App {
     }
 
     public static void test() throws IOException, URISyntaxException {
+        String hdfsUrl = "/Users/apssouza/Projetos/java/lambda-arch/data/spark/";
+        int maxDetail = 10;
 
 //        String sparkMasterUrl = "local[*]";
         String sparkMasterUrl = "spark://spark-master:7077";
 
-//        String hdfsUrl = "/Users/apssouza/Projetos/java/lambda-arch/data/spark/";
-
-        String hdfsUrl = "/opt/spark-data/";
-
-
-
-        int maxDetail = 10;
-//        String csvFile = hdfsUrl + "input/localhost.csv";
-        String csvFile = "hdfs://localhost:8020/user/lambda/localhost.csv";
+//        String csvFile = "/Users/apssouza/Projetos/java/lambda-arch/data/spark/input/localhost.csv";
+        String csvFile = "hdfs://namenode:8020/user/lambda/localhost.csv";
 
         String outputPath = hdfsUrl + "output/";
+        String[] jars = {"/Users/apssouza/Projetos/java/lambda-arch/target/lambda-arch-1.0-SNAPSHOT.jar"};
 
-        SparkConf sparkConf = new SparkConf().setAppName("BDE-SensorDemo").setMaster(sparkMasterUrl);
+        SparkConf sparkConf = new SparkConf()
+                .setAppName("BDE-SensorDemo")
+                .setMaster(sparkMasterUrl)
+
+                .setJars(jars)
+                ;
         JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
         SQLContext sqlContext = new SQLContext(sparkContext);
 
@@ -120,15 +121,20 @@ public class App {
                 .format("csv")
                 .option("header", "true")
                 .load(csvFile);
-
-        return dataFrame.javaRDD()
-                .map((Function<Row, Measurement>) row -> {
-                    LocalDateTime time = LocalDateTime.parse(row.getString(row.fieldIndex("timestamp")), DateTimeFormatter.ISO_DATE_TIME);
-                    Double latitude = Double.parseDouble(row.getString(row.fieldIndex("latitude")));
-                    Double longitude = Double.parseDouble(row.getString(row.fieldIndex("longitude")));
-                    Coordinate coordinate = new Coordinate(latitude, longitude);
-                    return new Measurement(coordinate, time);
+        JavaRDD<Row> rowJavaRDD = dataFrame.javaRDD();
+        JavaRDD<Measurement> map = dataFrame.javaRDD()
+                .map(new Function<Row, Measurement>() {
+                    @Override
+                    public Measurement call(Row row) throws Exception {
+                        LocalDateTime time = LocalDateTime.parse(row.getString(row.fieldIndex("timestamp")), DateTimeFormatter.ISO_DATE_TIME);
+                        Double latitude = Double.parseDouble(row.getString(row.fieldIndex("latitude")));
+                        Double longitude = Double.parseDouble(row.getString(row.fieldIndex("longitude")));
+                        Coordinate coordinate = new Coordinate(latitude, longitude);
+                        return new Measurement(coordinate, time);
+                    }
                 });
+        long count1 = map.count();
+        return map;
 
     }
 

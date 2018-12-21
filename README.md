@@ -1,12 +1,28 @@
 Building robust,highly-scalable batch and real-time systems.
 Applying the Lambda Architecture with Spark, Kafka, and Cassandra.
 
+
+## How to use
+
+* run `docker-compose -p lambda up`
+* upload the localhost.csv to the container `docker cp data/spark/input/localhost.csv namenode:/localhost.csv`
+
+From the namenode container: 
+
+
+* `hdfs dfs -mkdir /user`
+* `hdfs dfs -mkdir /user/lambda`
+* `hdfs dfs -put localhost.csv /user/lambda/`
+* Access the file http://localhost:50075/webhdfs/v1/user/lambda/localhost.csv?op=OPEN&namenoderpcaddress=namenode:8020&offset=0
+
+
+
 ## Spark
 Add spark-master to /etc/hosts
 
 ### Submit a job to master
-- Connect to the master `spark-shell --master spark://spark-master:7077`
-- Run `spark-submit jar-path`
+- `spark-submit --class com.apssouza.lambda.MyApp --master spark://spark-master:7077 /Users/apssouza/Projetos/java/lambda-arch/target/lambda-arch-1.0-SNAPSHOT.jar``
+- Connect to the master and run spark code `spark-shell --master spark://spark-master:7077`
 - Or Access the Spark master via SSH and run `spark-submit jar-path`
 
 ### GUI
