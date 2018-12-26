@@ -9,7 +9,6 @@ Applying the Lambda Architecture with Spark, Kafka, and Cassandra.
 
 From the namenode container: 
 
-
 * `hdfs dfs -mkdir /user`
 * `hdfs dfs -mkdir /user/lambda`
 * `hdfs dfs -put localhost.csv /user/lambda/`
@@ -21,9 +20,9 @@ From the namenode container:
 Add spark-master to /etc/hosts
 
 ### Submit a job to master
-- `spark-submit --class com.apssouza.lambda.MyApp --master spark://spark-master:7077 /Users/apssouza/Projetos/java/lambda-arch/target/lambda-arch-1.0-SNAPSHOT.jar``
-- Connect to the master and run spark code `spark-shell --master spark://spark-master:7077`
-- Or Access the Spark master via SSH and run `spark-submit jar-path`
+- mvn package
+- `spark-submit --class com.apssouza.lambda.App --master spark://spark-master:7077 /Users/apssouza/Projetos/java/lambda-arch/target/lambda-arch-1.0-SNAPSHOT.jar``
+
 
 ### GUI
 http://localhost:8080 Master

@@ -50,4 +50,4 @@ nb_jr_remoting.cfg
 *.iml
 target
 *mvn*
-/data/output
+/data/*
