@@ -50,4 +50,6 @@ nb_jr_remoting.cfg
 *.iml
 target
 *mvn*
-/data/*
+/data/spark/output/*
+/data/datanode/*
+/data/namenode/*

@@ -17,21 +17,16 @@ public class App {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 
-    private JavaSparkContext sparkContext;
-
-    public JavaSparkContext getSparkContext() {
-        return sparkContext;
-    }
 
     public static void main(String[] args) throws IOException, URISyntaxException {
-        String hdfsUrl = "/Users/apssouza/Projetos/java/lambda-arch/data/spark/";
+        String hdfsUrl = "./data/spark/";
 
 //        String sparkMasterUrl = "local[*]";
 //        String csvFile = "/Users/apssouza/Projetos/java/lambda-arch/data/spark/input/localhost.csv";
 
         String sparkMasterUrl = "spark://spark-master:7077";
         String csvFile = "hdfs://namenode:8020/user/lambda/localhost.csv";
-        String[] jars = {"/Users/apssouza/Projetos/java/lambda-arch/target/lambda-arch-1.0-SNAPSHOT.jar"};
+        String[] jars = {"./target/lambda-arch-1.0-SNAPSHOT.jar"};
 
         JavaSparkContext sparkContext = getSparkContext(sparkMasterUrl, jars);
         SparkJob app = new SparkJob(new SQLContext(sparkContext));
