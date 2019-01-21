@@ -41,3 +41,10 @@ Gui
 http://localhost:50070
 http://localhost:50075
 
+
+## Kafka
+  
+* kafka-topics --create --topic cordinations --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181
+* kafka-console-producer --request-required-acks 1 --broker-list kafka:9092 --topic cordinations
+* kafka-console-consumer --bootstrap-server kafka:9092 --topic cordinations
+* kafka-topics --list --zookeeper zookeeper:2181

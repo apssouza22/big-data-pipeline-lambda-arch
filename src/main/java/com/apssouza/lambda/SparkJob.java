@@ -22,22 +22,7 @@ import java.util.Map;
 
 public class SparkJob {
 
-    private SQLContext sqlContext;
-
-    public SparkJob(SQLContext sqlContext) {
-        this.sqlContext = sqlContext;
-    }
-
-    public Dataset<Row> getDataSet(String csvFile) {
-        return sqlContext.read()
-                .format("csv")
-                .option("header", "true")
-                .load(csvFile);
-    }
-
-
-    public List<Map<String, Object>> getHeatmap(int maxDetail, String csvFile) throws IOException {
-        Dataset<Row> dataFrame = getDataSet(csvFile);
+    public List<Map<String, Object>> getHeatmap(int maxDetail, Dataset<Row> dataFrame) throws IOException {
         JavaRDD<Measurement> measurements = csvToMeasurements(dataFrame);
         JavaRDD<Measurement> measurementsWithRoundedCoordinates = roundCoordinates(measurements);
 

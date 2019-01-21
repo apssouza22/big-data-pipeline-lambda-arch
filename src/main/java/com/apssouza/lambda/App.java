@@ -3,6 +3,8 @@ package com.apssouza.lambda;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 
 import java.io.BufferedWriter;
@@ -29,13 +31,22 @@ public class App {
         String[] jars = {"./target/lambda-arch-1.0-SNAPSHOT.jar"};
 
         JavaSparkContext sparkContext = getSparkContext(sparkMasterUrl, jars);
-        SparkJob app = new SparkJob(new SQLContext(sparkContext));
-
-        List<Map<String, Object>> gridBoxes = app.getHeatmap(10, csvFile);
+        SQLContext sqlContext = new SQLContext(sparkContext);
+        SparkJob app = new SparkJob();
+        Dataset<Row> dataFrame = getDataSet(sqlContext, csvFile);
+        List<Map<String, Object>> gridBoxes = app.getHeatmap(10, dataFrame);
         writeJson(gridBoxes, hdfsUrl + "output/gridbox.json");
 
         sparkContext.close();
         sparkContext.stop();
+    }
+
+
+    public static Dataset<Row> getDataSet(SQLContext sqlContext, String csvFile) {
+        return sqlContext.read()
+                .format("csv")
+                .option("header", "true")
+                .load(csvFile);
     }
 
 
