@@ -1,6 +1,5 @@
 package com.apssouza.lambda;
 
-import com.apssouza.lambda.dto.RddEnhanced;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
@@ -15,8 +14,6 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka010.*;
-import scala.Function1;
-import org.apache.spark.api.java.function.Function
 
 import java.util.*;
 import java.util.logging.Level;
@@ -70,78 +67,25 @@ public class AppStreaming {
 
         final HeatMapMesurement app = new HeatMapMesurement();
         final JavaDStream<String> locationStreamValues = locationStream.map(ConsumerRecord::value);
-        final String csvFile = "/Users/apssouza/Projetos/java/lambda-arch/data/spark/output/realtime";
+        final String csvFile = "/Users/apssouza/Projetos/opensource/lambda-arch/data/spark/output/realtime";
 
         locationStreamValues.foreachRDD((JavaRDD<String> locationRDD) -> {
             if (!locationRDD.isEmpty()) {
-                List<String> collect = locationRDD.rdd().toJavaRDD().collect();
-                Dataset<String> dataset = sparkSession.createDataset(locationRDD.rdd(),  Encoders.STRING());
-                transformRdd(dataset, sparkSession);
-                Dataset<RddEnhanced> rddEnhancedDataset = null;// transformRdd(dataset, sparkSession);
-                Dataset<Row> row =rddEnhancedDataset.toDF()
-                        .selectExpr(
-                                "source", "timestamp", "latitude", "longitude",
-                                "inputInfo.topic as topic", "inputInfo.kafkaPartition as kafkaPartition", "inputInfo.fromOffset as fromOffset", "inputInfo.untilOffset as untilOffset"
-                        );
-                row.write().csv(csvFile);
-                row.createOrReplaceTempView(MEETUP_VIEW);
+                Dataset<Row> row = sparkSession.read().csv(
+                        sparkSession.createDataset(locationRDD.rdd(), Encoders.STRING())
+                );
+                Dataset<Row> rowDF = row.toDF("source", "timestamp", "latitude", "longitude");
+//                rowDF.show();
+                rowDF.write().mode(SaveMode.Append).csv(csvFile);
+                rowDF.createOrReplaceTempView(MEETUP_VIEW);
                 Dataset<Row> locations = sparkSession.sql("select * from " + MEETUP_VIEW);
                 List<Map<String, Object>> heatmap = app.getHeatmap(10, locations);
+                System.out.println(heatmap.size());
             }
         });
         commitAck(locationStream);
         streamingContext.start();
         streamingContext.awaitTermination();
-    }
-
-    private static Dataset<RddEnhanced> transformRdd(Dataset<String> dataset, SparkSession sparkSession) {
-        Dataset<RddEnhanced> transform = dataset.toDF().transform(getDatasetDatasetFunction1(sparkSession));
-//////
-//        Dataset<String> transform = dataset.toDF().transform(item -> {
-//            OffsetRange[] offsetRanges = ((HasOffsetRanges) item.rdd()).offsetRanges();
-//
-//            JavaRDD<String> rddEnhancedJavaRDD = item.javaRDD().mapPartitionsWithIndex((index, items) -> {
-//                Map<String, String> meta = new HashMap<String, String>() {{
-//                    put("topic", offsetRanges[index].topic());
-//                    put("kafkaPartition", String.class.cast(offsetRanges[index].partition()));
-//                    put("fromOffset", String.class.cast(offsetRanges[index].fromOffset()));
-//                    put("fromOffset", String.class.cast(offsetRanges[index].untilOffset()));
-//                }};
-//                List<String> list = new ArrayList<>();
-//                while (items.hasNext()) {
-//                    String[] split = items.next().split(",");
-////                    list.add(new RddEnhanced(split[0], split[1], split[2], split[3], meta));
-//                    list.add("dfda");
-//                }
-//                return list.iterator();
-//            }, true);
-//            Encoder<RddEnhanced> bean = Encoders.bean(RddEnhanced.class);
-//            return sparkSession.createDataset(rddEnhancedJavaRDD.rdd(), Encoders.STRING());
-//        });
-        return transform;
-    }
-
-    private static Function1<Dataset<Row>, Dataset<RddEnhanced>> getDatasetDatasetFunction1(SparkSession sparkSession) {
-        return item -> {
-            OffsetRange[] offsetRanges = ((HasOffsetRanges) item.rdd()).offsetRanges();
-
-            JavaRDD<RddEnhanced> rddEnhancedJavaRDD = item.javaRDD().mapPartitionsWithIndex((index, items) -> {
-                Map<String, String> meta = new HashMap<String, String>() {{
-                    put("topic", offsetRanges[index].topic());
-                    put("kafkaPartition", String.class.cast(offsetRanges[index].partition()));
-                    put("fromOffset", String.class.cast(offsetRanges[index].fromOffset()));
-                    put("fromOffset", String.class.cast(offsetRanges[index].untilOffset()));
-                }};
-                List<RddEnhanced> list = new ArrayList<>();
-                while (items.hasNext()) {
-                    String[] split = items.next().getString(0).split(",");
-                    list.add(new RddEnhanced(split[0], split[1], split[2], split[3], meta));
-                }
-                return list.iterator();
-            }, true);
-            Encoder<RddEnhanced> bean = Encoders.bean(RddEnhanced.class);
-            return sparkSession.createDataset(rddEnhancedJavaRDD.rdd(), bean);
-        };
     }
 
     private static JavaStreamingContext getJavaStreamingContext(SparkConf conf) {
