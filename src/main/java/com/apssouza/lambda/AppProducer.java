@@ -1,6 +1,12 @@
 package com.apssouza.lambda;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -12,14 +18,16 @@ import org.apache.kafka.common.serialization.StringSerializer;
 public class AppProducer {
 
     public static void main(String[] args) throws Exception {
-
-        String topicName = "cordinations";
+        String topicName = "heatmap2";
         Producer<Long, String> producer = createProducer();
 
-        for (int i = 0; i < 10; i++) {
-            producer.send(new ProducerRecord<>(topicName, "msg test" + Integer.toString(i)));
-            producer.flush();
+        String csvFile = "/Users/apssouza/Projetos/java/lambda-arch/data/spark/input/localhost.csv";
+        try (Stream<String> stream = Files.lines(Paths.get(csvFile))) {
+            stream.skip(1).forEach(line -> {
+                producer.send(new ProducerRecord<>(topicName, line));
+            });
         }
+        producer.flush();
         producer.close();
         System.out.println("Message sent successfully");
     }

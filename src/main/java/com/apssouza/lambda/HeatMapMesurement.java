@@ -2,6 +2,7 @@ package com.apssouza.lambda;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
@@ -20,12 +21,11 @@ import java.util.List;
 import java.util.Map;
 
 
-public class SparkJob {
+public class HeatMapMesurement {
 
     public List<Map<String, Object>> getHeatmap(int maxDetail, Dataset<Row> dataFrame) throws IOException {
         JavaRDD<Measurement> measurements = csvToMeasurements(dataFrame);
         JavaRDD<Measurement> measurementsWithRoundedCoordinates = roundCoordinates(measurements);
-
         LocalDateTime minTimestamp = measurements.min(new TimestampComparator()).getTimestamp();
         LocalDateTime maxTimestamp = measurements.max(new TimestampComparator()).getTimestamp();
         long duration = minTimestamp.until(maxTimestamp, ChronoUnit.MILLIS);
@@ -38,7 +38,6 @@ public class SparkJob {
                 JavaRDD<Measurement> measurementsFilteredByTime = filterByTime(measurementsWithRoundedCoordinates, start, end);
                 JavaPairRDD<Coordinate, Integer> counts = countPerGridBox(measurementsFilteredByTime);
                 gridBoxes.addAll(getCountInArea(counts));
-//                String fileName = outputPath + "/" + (i + 1) + ".json";
             }
         }
         return gridBoxes;
@@ -66,14 +65,18 @@ public class SparkJob {
      */
     private JavaRDD<Measurement> csvToMeasurements(Dataset<Row> dataset) {
         JavaRDD<Measurement> map = dataset.javaRDD()
-                .map(row -> {
-                    LocalDateTime time = LocalDateTime.parse(row.getString(row.fieldIndex("timestamp")), DateTimeFormatter.ISO_DATE_TIME);
-                    Double latitude = Double.parseDouble(row.getString(row.fieldIndex("latitude")));
-                    Double longitude = Double.parseDouble(row.getString(row.fieldIndex("longitude")));
-                    Coordinate coordinate = new Coordinate(latitude, longitude);
-                    return new Measurement(coordinate, time);
-                });
+                .map(getRowMeasurementFunction());
         return map;
+    }
+
+    private Function<Row, Measurement> getRowMeasurementFunction() {
+        return row -> {
+            LocalDateTime time = LocalDateTime.parse(row.getString(row.fieldIndex("timestamp")), DateTimeFormatter.ISO_DATE_TIME);
+            Double latitude = Double.parseDouble(row.getString(row.fieldIndex("latitude")));
+            Double longitude = Double.parseDouble(row.getString(row.fieldIndex("longitude")));
+            Coordinate coordinate = new Coordinate(latitude, longitude);
+            return new Measurement(coordinate, time);
+        };
     }
 
 

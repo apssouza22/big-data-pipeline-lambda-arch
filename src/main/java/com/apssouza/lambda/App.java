@@ -32,10 +32,10 @@ public class App {
 
         JavaSparkContext sparkContext = getSparkContext(sparkMasterUrl, jars);
         SQLContext sqlContext = new SQLContext(sparkContext);
-        SparkJob app = new SparkJob();
+        HeatMapMesurement app = new HeatMapMesurement();
         Dataset<Row> dataFrame = getDataSet(sqlContext, csvFile);
         List<Map<String, Object>> gridBoxes = app.getHeatmap(10, dataFrame);
-        writeJson(gridBoxes, hdfsUrl + "output/gridbox.json");
+        writeJson(gridBoxes, hdfsUrl + "output/gridbox-batch.json");
 
         sparkContext.close();
         sparkContext.stop();
