@@ -1,4 +1,4 @@
-package sensors.model;
+package com.apssouza.lambda.sensors.model;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-package com.apssouza.lambda;
+package com.apssouza.lambda.sensors;
 
 import java.io.IOException;
 import java.nio.file.Files;

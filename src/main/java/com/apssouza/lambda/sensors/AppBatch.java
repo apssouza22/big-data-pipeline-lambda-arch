@@ -1,5 +1,6 @@
-package com.apssouza.lambda;
+package com.apssouza.lambda.sensors;
 
+import com.apssouza.lambda.sensors.HeatMapMesurement;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -15,7 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class App {
+public class AppBatch {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 

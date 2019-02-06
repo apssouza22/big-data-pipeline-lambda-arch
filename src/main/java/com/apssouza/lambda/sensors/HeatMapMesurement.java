@@ -1,15 +1,14 @@
-package com.apssouza.lambda;
+package com.apssouza.lambda.sensors;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SQLContext;
 import scala.Tuple2;
-import sensors.model.Coordinate;
-import sensors.model.Measurement;
-import sensors.utils.TimestampComparator;
+import com.apssouza.lambda.sensors.model.Coordinate;
+import com.apssouza.lambda.sensors.model.Measurement;
+import com.apssouza.lambda.sensors.utils.TimestampComparator;
 
 import java.io.IOException;
 import java.time.LocalDateTime;

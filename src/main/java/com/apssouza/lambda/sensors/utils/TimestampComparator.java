@@ -1,7 +1,7 @@
-package sensors.utils;
+package com.apssouza.lambda.sensors.utils;
 
 
-import sensors.model.Measurement;
+import com.apssouza.lambda.sensors.model.Measurement;
 
 import java.io.Serializable;
 import java.util.Comparator;

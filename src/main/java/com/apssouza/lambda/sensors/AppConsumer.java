@@ -1,4 +1,4 @@
-package com.apssouza.lambda;
+package com.apssouza.lambda.sensors;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
