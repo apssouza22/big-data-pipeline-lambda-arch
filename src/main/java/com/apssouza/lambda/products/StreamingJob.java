@@ -1,21 +1,28 @@
 package com.apssouza.lambda.products;
 
 
+import com.apssouza.lambda.products.model.Activity;
+import com.apssouza.lambda.products.model.ActivityByProduct;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.spark.SparkConf;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.functions;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.sql.*;
 import org.apache.spark.streaming.Duration;
+import org.apache.spark.streaming.Durations;
+import org.apache.spark.streaming.State;
+import org.apache.spark.streaming.StateSpec;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
+import org.apache.spark.streaming.api.java.JavaMapWithStateDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
+import scala.Function3;
+import scala.Tuple2;
 
 import java.util.*;
 
@@ -54,7 +61,7 @@ public class StreamingJob {
         final SparkConf conf = getSparkConf();
         final JavaStreamingContext streamingContext = getJavaStreamingContext(conf);
         final SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
-        final JavaInputDStream<ConsumerRecord<String, String>> locationStream = getDirectStream(streamingContext);
+        final JavaInputDStream<ConsumerRecord<String, String>> kafkaDirectStream = getDirectStream(streamingContext);
 
 
 //        Map<TopicAndPartition, Long> fromOffsets =  new HashedMap();
@@ -85,30 +92,46 @@ public class StreamingJob {
 //                    ssc, kafkaDirectParams, fromOffsets, {mmd:MessageAndMetadata[String, String]=>(mmd.key(), mmd.message())}
 //                )
 //        }
+
+//        final JavaDStream<String> locationStreamValues = kafkaDirectStream.map(ConsumerRecord::value);
+//        final String csvFile = "/Users/apssouza/Projetos/opensource/lambda-arch/data/spark/output/realtime";
 //
-//        val activityStream = kafkaDirectStream.transform(input = > {
-//                functions.rddToRDDActivity(input)
-//        }).cache()
+//        locationStreamValues.foreachRDD((JavaRDD<String> locationRDD) -> {
+//            if (!locationRDD.isEmpty()) {
+//                Dataset<Row> row = sparkSession.read().csv(
+//                        sparkSession.createDataset(locationRDD.rdd(), Encoders.STRING())
+//                );
+//                Dataset<Row> rowDF = row.toDF("timestamp_hour", "referrer", "action", "prevPage", "page", "visitor", "product");
+////                rowDF.show();
 //
-//        // save data to HDFS
-//        activityStream.foreachRDD {
-//            rdd =>
-//            val activityDF = rdd
-//                    .toDF()
-//                    .selectExpr("timestamp_hour", "referrer", "action", "prevPage", "page", "visitor", "product", "inputProps.topic as topic", "inputProps.kafkaPartition as kafkaPartition", "inputProps.fromOffset as fromOffset", "inputProps.untilOffset as untilOffset")
+//                rowDF.write().mode(SaveMode.Append).parquet(csvFile);
+//                rowDF.createOrReplaceTempView(MEETUP_VIEW);
+//                Dataset<Row> locations = sparkSession.sql("select * from " + MEETUP_VIEW);
+//            }
+//        });
 //
-//            activityDF
-//                    .write
-//                    .partitionBy("topic", "kafkaPartition", "timestamp_hour")
-//                    .mode(SaveMode.Append)
-//                    .parquet(hdfsPath)
-//        }
 //
-//        // activity by product
-//        val activityStateSpec =
-//                StateSpec
-//                        .function(mapActivityStateFunc)
-//                        .timeout(Minutes(120))
+//        // Update the cumulative count function
+//        Function3<String, Optional<ActivityByProduct>, State<List<Long>>, Tuple2<String, ActivityByProduct>> mappingFunc = (k, v, state) -> {
+//            List<Long> currentState = state.getOption().getOrElse(() -> Arrays.asList(new Long[]{0l, 0l}));
+//            Long purchase_count = currentState.get(0);
+//            Long add_to_cart_count = currentState.get(1);
+//            Long page_view_count = currentState.get(2);
+//            ActivityByProduct activityByProduct = v.orElse(new ActivityByProduct("", 0l, 0l, 0l, 0l));
+//
+//            purchase_count = purchase_count+  activityByProduct.getPurchaseCount();
+//            add_to_cart_count = add_to_cart_count + activityByProduct.getAddToCartCount();
+//            page_view_count = page_view_count +  activityByProduct.getPageViewCount();
+//
+//            List<Long> newState = Arrays.asList(purchase_count, add_to_cart_count, page_view_count);
+//            state.update(newState);
+//            return new Tuple2<>(k, v.get());
+//        };
+//        StateSpec.function(mappingFunc).timeout(Durations.seconds(3600));
+//        // DStream made of get cumulative counts that get updated in every batch
+//        JavaMapWithStateDStream<String, Integer, Integer, Tuple2<String, Integer>> stateDstream =
+//                wordCounts.mapWithState(StateSpec.function(mappingFunc).initialState(initialRDD));
+//
 //
 //        val statefulActivityByProduct = activityStream.transform(rdd = > {
 //                val df = rdd.toDF()
