@@ -1,8 +1,59 @@
-Building robust,highly-scalable batch and real-time systems.
-Applying the Lambda Architecture with Spark, Kafka, and Cassandra.
+# Lambda architecture
 
+![Alt text](diagram.png?raw=true "Lambda architecture")
+
+Read about the project [here](https://medium.com/@alexsandrosouza/lambda-architecture-how-to-build-a-big-data-pipeline-part-1-8b56075e83fe)
+
+
+Our Lambda project receives real-time IoT Data Events coming from Connected Vehicles, 
+then ingested to Spark through Kafka. Using the Spark streaming API, we processed and analysed 
+IoT data events and transformed them into vehicle count for different types of vehicles on different routes. 
+While simultaneously the data is also stored into HDFS for Batch processing. 
+We performed a series of stateless and stateful transformation using Spark streaming API on 
+streams and persisted them to Cassandra database tables. In order to get accurate views, 
+we also process a batch processing creating a batch view into Cassandra. 
+We developed responsive web traffic monitoring dashboard using Spring Boot, 
+SockJs and Bootstrap which merge two views from the Cassandra database before pushing to the UI using web socket.
+
+
+All component parts are dynamically managed using Docker, which means you don't need to worry 
+about setting up your local environment, the only thing you need is to have Docker installed.
+
+
+- JDK - 1.8
+- Maven
+- ZooKeeper
+- Kafka
+- Cassandra
+- Spark
+- Docker
+- HDFS
+
+
+
+The streaming part of the project was done from iot-traffic-project [InfoQ](https://www.infoq.com/articles/traffic-data-monitoring-iot-kafka-and-spark-streaming)
 
 ## How to use
+
+
+Please refer "IoTData.cql" file to create Keyspace and Tables in Cassandra Database, which are required by this application.
+
+You can build and run this application using below commands. Please check resources/iot-spark.properties for configuration details.
+
+```sh
+mvn package
+spark-submit --class "com.iot.app.spark.processor.IoTDataProcessor” iot-spark-processor-1.0.0.jar
+```
+
+
+```
+kafka-topics --create --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic iot-data-event
+
+cqlsh --username cassandra --password cassandra  -f /schema.cql
+
+
+```
+
 
 * run `docker-compose -p lambda up`
 * upload the localhost.csv to the container `docker cp data/spark/input/localhost.csv namenode:/localhost.csv`

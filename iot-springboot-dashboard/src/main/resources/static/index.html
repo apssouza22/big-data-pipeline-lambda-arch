@@ -1,0 +1,193 @@
+<html>
+
+<head>
+    <title>IoT Traffic Data Monitoring Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+	<style>
+		/* Always set the map height explicitly to define the size of the div
+		* element that contains the map. */
+		#map {
+			height: 100%;
+		}
+		/* Optional: Makes the sample page fill the window. */
+		html, body {
+			height: 100%;
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="text-center">IoT Traffic Data Monitoring Dashboard</h2>
+			</div>
+		</div>
+	<br>
+	<div class="row">
+		<div class="col-md-4">
+			<table class="table outerTable">
+				<thead>
+					<tr>
+						<th>Total Traffic Chart</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td><canvas id="totalTrafficChart"></canvas></td>
+					</tr>
+			    </tbody>
+			</table>
+			<table class="table outerTable">
+				<thead>
+					<tr>
+						<th>Total Traffic Data</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>	
+							<div id="total_traffic">
+								<table class="table table-bordered table-condensed table-hover innerTable">
+									<tr>
+										<thead>
+											<th>Route</th><th>Vehicle</th><th>Count</th><th>Time</th>
+										</thead>
+									</tr>
+								</table>
+							</div>	
+						</td>
+					</tr>
+			    </tbody>
+			</table>
+		</div>
+		<div class="col-md-4">
+			<table class="table outerTable">
+				<thead>
+					<tr>
+						<th>Route 37 Traffic Chart</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td><canvas id="route37TrafficChart"></canvas></td>
+					</tr>
+			    </tbody>
+			</table>
+			<table class="table outerTable">
+				<thead>
+					<tr>
+						<th>Last 30 Seconds Window</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>	
+							<div id="window_traffic">
+								<table class="table table-bordered table-condensed table-hover innerTable">
+									<tr>
+										<thead>
+											<th>Route</th><th>Vehicle</th><th>Count</th><th>Time</th>
+										</thead>
+									</tr>
+								</table>
+							</div>	
+						</td>
+					</tr>
+			    </tbody>
+			</table>		
+		</div>
+		<div class="col-md-4">
+			<table class="table outerTable">
+				<thead>
+					<tr>
+						<th>POI Vehicle Chart</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td><canvas id="poiTrafficChart"></canvas></td>
+					</tr>
+			    </tbody>
+			</table>
+			<table class="table outerTable">
+				<thead>
+					<tr>
+						<th>Trucks At POI</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>	
+							<div id="poi_traffic">
+								<table class="table table-bordered table-condensed table-hover innerTable">
+									<tr>
+										<thead>
+											<th>Vehicle Id</th><th>Vehicle</th><th>Distance</th><th>Time</th>
+										</thead>
+									</tr>
+								</table>
+							</div>	
+						</td>
+					</tr>
+			    </tbody>
+			</table>
+		</div>
+	</div>
+		<div class="row">
+			<div class="col-md-12" style="height:300px;">
+				<div id="map"></div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6">
+				<table class="table outerTable">
+					<thead>
+					<tr>
+						<th>The world is defined by a grid of boxes, each box has a size of 0.0005 by 0.0005.</th>
+					</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>
+								<div id="gridBoxContent">
+									<table class="table table-bordered table-condensed table-hover innerTable">
+										<thead>
+										<tr>
+											<th>Grid box center</th>
+											<th>Quantity</th>
+										</tr>
+										</thead>
+										<tbody>
+
+										</tbody>
+									</table>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<br>
+		<br>
+		<br>
+		<br>
+</div>
+
+	<script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
+	<script type="text/javascript" src="js/sockjs-1.1.1.min.js"></script>
+	<script type="text/javascript" src="js/stomp.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>`
+	<script type="text/javascript" src="js/Chart.min.js"></script>
+	<script type="text/javascript" src="js/script.js"></script>
+	<script async defer
+			src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDplMA_nwsIAuO66c6B5Uloyu4Jev9i2R0&libraries=visualization&callback=initMap">
+	</script>
+
+</body>
+</html>

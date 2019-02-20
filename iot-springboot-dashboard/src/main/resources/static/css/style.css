@@ -1,0 +1,40 @@
+.outerTable {
+    table-layout: fixed;
+    border: 2px solid black;
+}
+
+.outerTable th {
+    text-align: center;
+    background-color: #d4d4aa;
+    color: blue;  
+}
+
+.outerTable>thead>tr>th {
+    border: 2px solid black;
+}
+
+.innerTable {
+    table-layout: fixed;
+}
+
+.innerTable th {
+    text-align: center;
+    background-color: #4CAF50;
+    color: white; 
+}
+
+.innerTable tr {
+    text-align: center;
+}
+
+.innerTable>tbody>tr>td {
+    font-family:Arial-Black;
+}
+
+.innerTable>tbody:nth-of-type(odd){
+	background-color: #B6EA7D;
+}
+
+.innerTable>tbody:nth-of-type(even){
+	background-color: #BFEAA3;
+}
