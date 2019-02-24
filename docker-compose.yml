@@ -5,6 +5,7 @@ services:
   zookeeper:
       image: confluentinc/cp-zookeeper:5.1.0
       hostname: zookeeper
+      container_name: zookeeper-iot
       ports:
         - 2181:2181
       networks:
@@ -19,10 +20,8 @@ services:
       depends_on:
         - zookeeper
       environment:
-#        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.43.100:9092
         KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.1.5:9092
         KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-        KAFKA_CREATE_TOPICS: "cordinations:1:1"
         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
@@ -30,100 +29,101 @@ services:
       container_name: kafka-iot
       networks:
         - net
-#      command: /bin/bash -c "curl -L -O https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh wait-for-it.sh"
-#      command: /bin/bash -c "chmod +x wait-for-it.sh"
-#      command: /bin/bash -c "wait-for-it.sh cassandra:9042 --timeout=100 --kafka-topics --create --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic iot-data-event"
 
   cassandra:
     image: 'bitnami/cassandra:latest'
     hostname: cassandra
     networks:
-    - net
+      - net
     ports:
       - "9042:9042"
     environment:
       - "MAX_HEAP_SIZE=256M"
       - "HEAP_NEWSIZE=128M"
-    restart: always
+      - "CASSANDRA_HOST=cassandra"
+    container_name: cassandra-iot
     volumes:
       - ./iot-spark-processor/data/IotData.cql:/schema.cql
-#    healthcheck:
-#      test: ["CMD", "cqlsh", "-u cassandra", "-p cassandra" ,"-e describe keyspaces"]
-#      interval: 15s
-#      timeout: 10s
-#      retries: 10
+      - ./data/cassandra/:/bitnami
+    restart: always
+    healthcheck:
+      test: ["CMD", "cqlsh", "-u cassandra", "-p cassandra" ,"-e describe keyspaces"]
+      interval: 15s
+      timeout: 100s
+      retries: 10
 
 
-#  spark-master:
-#    image: bde2020/spark-master:2.3.2-hadoop2.7
-#    container_name: spark-master
-#    hostname: spark-master
-#    healthcheck:
-#      interval: 5s
-#      retries: 100
-#    ports:
-#    - "8080:8080"
-#    - "7077:7077"
-#    environment:
-#    - INIT_DAEMON_STEP=false
-#    - SPARK_DRIVER_HOST=192.168.1.104
-#    volumes:
-#      - ./data/spark/:/opt/spark-data
-#
-#    networks:
-#      - net
-#
-#  spark-worker-1:
-#    image: bde2020/spark-worker:2.3.2-hadoop2.7
-#    container_name: spark-worker-1
-#    hostname: spark-worker-1
-#    depends_on:
-#      - spark-master
-#    ports:
-#      - "8081:8081"
-#    environment:
-#      - "SPARK_MASTER=spark://spark-master:7077"
-#    volumes:
-#      - ./data/spark/:/opt/spark-data
-#    networks:
-#      - net
-#
-#  namenode:
-#    image: bde2020/hadoop-namenode:1.1.0-hadoop2.8-java8
-#    container_name: namenode
-#    hostname: namenode
-#    volumes:
-#    - ./data/namenode:/hadoop/dfs/name
-#    environment:
-#    - CLUSTER_NAME=test
-#    - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
-#    healthcheck:
-#      interval: 5s
-#      retries: 100
-#    networks:
-#    - net
-#    ports:
-#    - 50070:50070
-#    - 8020:8020
-#
-#  datanode:
-#    image: bde2020/hadoop-datanode:1.1.0-hadoop2.8-java8
-#    container_name: datanode
-#    hostname: datanode
-#    volumes:
-#    - ./data/datanode:/hadoop/dfs/data
-#    environment:
-#    - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
-#    depends_on:
-#      namenode:
-#        condition: service_healthy
-#    healthcheck:
-#      interval: 5s
-#      retries: 100
-#    networks:
-#    - net
-#    ports:
-#    - 50075:50075
+  spark-master:
+    image: bde2020/spark-master:2.3.2-hadoop2.7
+    container_name: spark-master
+    hostname: spark-master
+    healthcheck:
+      interval: 5s
+      retries: 100
+    ports:
+    - "8080:8080"
+    - "7077:7077"
+    environment:
+    - INIT_DAEMON_STEP=false
+    - SPARK_DRIVER_HOST=192.168.1.104
+    volumes:
+      - ./data/spark/:/opt/spark-data
+
+    networks:
+      - net
+
+  spark-worker-1:
+    image: bde2020/spark-worker:2.3.2-hadoop2.7
+    container_name: spark-worker-1
+    hostname: spark-worker-1
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"
+    environment:
+      - "SPARK_MASTER=spark://spark-master:7077"
+    volumes:
+      - ./data/spark/:/opt/spark-data
+    networks:
+      - net
+
+  namenode:
+    image: bde2020/hadoop-namenode:1.1.0-hadoop2.8-java8
+    container_name: namenode
+    hostname: namenode
+    volumes:
+    - ./data/namenode:/hadoop/dfs/name
+    environment:
+    - CLUSTER_NAME=test
+    - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    healthcheck:
+      interval: 5s
+      retries: 100
+    networks:
+    - net
+    ports:
+    - 50070:50070
+    - 8020:8020
+
+  datanode:
+    image: bde2020/hadoop-datanode:1.1.0-hadoop2.8-java8
+    container_name: datanode
+    hostname: datanode
+    volumes:
+    - ./data/datanode:/hadoop/dfs/data
+    environment:
+    - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    depends_on:
+      namenode:
+        condition: service_healthy
+    healthcheck:
+      interval: 5s
+      retries: 100
+    networks:
+     - net
+    ports:
+     - 50075:50075
+     - 50010:50010
 
 networks:
   net:

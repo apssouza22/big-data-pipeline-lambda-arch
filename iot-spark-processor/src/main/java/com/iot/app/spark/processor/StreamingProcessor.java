@@ -53,13 +53,17 @@ public class StreamingProcessor implements Serializable {
     private void start() throws Exception {
         Properties prop = PropertyFileReader.readPropertyFile(file);
         Map<String, Object> kafkaProperties = getKafkaParams(prop);
-        SparkConf conf = getSparkConf(prop);
+        String[] jars = {
+                prop.getProperty("com.iot.app.jar")
+        };
+        SparkConf conf = getSparkConf(prop, jars);
 
         //batch interval of 5 seconds for incoming stream
         JavaStreamingContext jssc = new JavaStreamingContext(conf, Durations.seconds(5));
         final SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
         jssc.checkpoint(prop.getProperty("com.iot.app.spark.checkpoint.dir"));
         Map<TopicPartition, Long> lastOffSet = getLatestOffSet(sparkSession, prop);
+        lastOffSet = Collections.EMPTY_MAP;
         JavaInputDStream<ConsumerRecord<String, IoTData>> directKafkaStream = getStream(prop, jssc, kafkaProperties, lastOffSet);
 
         logger.info("Starting Stream Processing");
@@ -239,7 +243,8 @@ public class StreamingProcessor implements Serializable {
         );
     }
 
-    private SparkConf getSparkConf(Properties prop) {
+    private SparkConf getSparkConf(Properties prop, String[] jars) {
+
         return new SparkConf()
                 .setAppName(prop.getProperty("com.iot.app.spark.app.name"))
                 .setMaster(prop.getProperty("com.iot.app.spark.master"))
@@ -247,7 +252,8 @@ public class StreamingProcessor implements Serializable {
                 .set("spark.cassandra.connection.port", prop.getProperty("com.iot.app.cassandra.port"))
                 .set("spark.cassandra.auth.username", prop.getProperty("com.iot.app.cassandra.username"))
                 .set("spark.cassandra.auth.password", prop.getProperty("com.iot.app.cassandra.password"))
-                .set("spark.cassandra.connection.keep_alive_ms", prop.getProperty("com.iot.app.cassandra.keep_alive"));
+                .set("spark.cassandra.connection.keep_alive_ms", prop.getProperty("com.iot.app.cassandra.keep_alive"))
+                .setJars(jars);
     }
 
     private void processPOI(
