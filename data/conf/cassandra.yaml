@@ -1,0 +1,8 @@
+ssl_storage_port: 7001
+listen_address: 172.22.0.6
+start_native_transport: true
+native_transport_port: 9042
+start_rpc: true
+rpc_address: 172.22.0.6
+rpc_port: 9160
+rpc_keepalive: true
