@@ -35,23 +35,14 @@ The streaming part of the project was done from iot-traffic-project [InfoQ](http
 ## How to use
 *  Set the KAFKA_ADVERTISED_LISTENERS with your IP in the docker-compose.yml
 * `mvn package`
-
+* `docker network create -d bridge lambda_net`
 * `docker-compose -p lambda up`
 *  Wait all services be up and running, then...
-* `docker exec cassandra-iot cqlsh --username cassandra --password cassandra  -f /schema.cql`
-* `docker exec kafka-iot kafka-topics --create --topic iot-data-event --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181` 
-* `docker exec namenode hdfs dfs -mkdir /lambda-arch`
-* `docker exec namenode hdfs dfs -mkdir /lambda-arch/checkpoint`
-* `docker exec namenode hdfs dfs -chmod -R 777 /lambda-arch`
-* `docker exec spark-driver apk add --no-cache libc6-compat`
-* `docker exec spark-master apk add --no-cache libc6-compat`
-* `docker exec spark-worker-1 apk add --no-cache libc6-compat`
-* `docker exec spark-driver /spark/bin/spark-submit --class com.iot.app.spark.processor.StreamingProcessor  --master spark://spark-master:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar`
-
+* `./project-orchestrate.sh`
 
 ### Miscellaneous
 
-### Spark
+#### Spark
 spark-submit --class com.iot.app.spark.processor.StreamingProcessor --packages org.apache.kafka:kafka-clients:0.10.2.2 --master spark://spark-master:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar
 Add spark-master to /etc/hosts pointing to localhost
 /spark/bin/spark-submit 

@@ -98,6 +98,8 @@ services:
         - spark-master
       ports:
         - "4040:4040"
+        - "4041:4041"
+        - "8082:8082"
       environment:
         - "SPARK_MASTER=spark://spark-master:7077"
       volumes:
