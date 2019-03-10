@@ -54,11 +54,6 @@ public class StreamingProcessor implements Serializable {
         Properties prop = PropertyFileReader.readPropertyFile(file);
         Map<String, Object> kafkaProperties = getKafkaParams(prop);
         String[] jars = {
-                prop.getProperty("com.iot.app.jar")
-//                ,
-//                "/opt/spark-data/spark-core_2.11-2.4.0.jar",
-//                "/Users/apssouza/.m2/repository/com/datastax/cassandra/cassandra-driver-core/3.6.0/cassandra-driver-core-3.6.0.jar",
-//                "/Users/apssouza/.m2/repository/com/datastax/spark/spark-cassandra-connector_2.11/2.3.2/spark-cassandra-connector_2.11-2.3.2.jar"
         };
         SparkConf conf = getSparkConf(prop, jars);
 
@@ -66,8 +61,8 @@ public class StreamingProcessor implements Serializable {
         JavaStreamingContext jssc = new JavaStreamingContext(conf, Durations.seconds(5));
         final SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
         jssc.checkpoint(prop.getProperty("com.iot.app.spark.checkpoint.dir"));
-//        Map<TopicPartition, Long> lastOffSet = getLatestOffSet(sparkSession, prop);
-        Map<TopicPartition, Long> lastOffSet = Collections.EMPTY_MAP;
+        Map<TopicPartition, Long> lastOffSet = getLatestOffSet(sparkSession, prop);
+//        Map<TopicPartition, Long> lastOffSet = Collections.EMPTY_MAP;
         JavaInputDStream<ConsumerRecord<String, IoTData>> directKafkaStream = getStream(prop, jssc, kafkaProperties, lastOffSet);
 
         logger.info("Starting Stream Processing");
@@ -163,7 +158,6 @@ public class StreamingProcessor implements Serializable {
         kafkaProperties.put(ConsumerConfig.GROUP_ID_CONFIG, prop.getProperty("com.iot.app.kafka.topic"));
         kafkaProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, prop.getProperty("com.iot.app.kafka.resetType"));
         kafkaProperties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-        kafkaProperties.put(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, "range");
         return kafkaProperties;
     }
 
@@ -257,7 +251,6 @@ public class StreamingProcessor implements Serializable {
                 .set("spark.cassandra.auth.username", prop.getProperty("com.iot.app.cassandra.username"))
                 .set("spark.cassandra.auth.password", prop.getProperty("com.iot.app.cassandra.password"))
                 .set("spark.cassandra.connection.keep_alive_ms", prop.getProperty("com.iot.app.cassandra.keep_alive"))
-//                .set("spark.cassandra.connection.local_dc", "prod1")
                 ;
 //                .setJars(jars);
     }
