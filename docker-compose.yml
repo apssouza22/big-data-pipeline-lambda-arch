@@ -20,7 +20,7 @@ services:
       depends_on:
         - zookeeper
       environment:
-        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.43.100:9092
+        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.1.1:9092
         KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       volumes:
@@ -46,14 +46,14 @@ services:
     container_name: cassandra-iot
     volumes:
       - ./iot-spark-processor/data/IotData.cql:/schema.cql
-      - ./data/cassandra/:/bitnami
-      - ./data/conf/:/bitnami/cassandra/conf/
-    restart: always
-    healthcheck:
-      test: ["CMD", "cqlsh", "-u cassandra", "-p cassandra" ,"-e describe keyspaces"]
-      interval: 15s
-      timeout: 100s
-      retries: 10
+      # - ./data/cassandra/:/bitnami
+      # - ./data/conf/:/bitnami/cassandra/conf/
+    # restart: always
+    # healthcheck:
+    #   test: ["CMD", "cqlsh", "-u cassandra", "-p cassandra" ,"-e describe keyspaces"]
+    #   interval: 15s
+    #   timeout: 100s
+    #   retries: 10
 
 
   spark-master:
