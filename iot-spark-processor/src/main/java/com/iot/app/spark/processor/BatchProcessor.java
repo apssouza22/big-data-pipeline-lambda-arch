@@ -60,7 +60,8 @@ public class BatchProcessor {
                 .set("spark.cassandra.auth.username", prop.getProperty("com.iot.app.cassandra.username"))
                 .set("spark.cassandra.auth.password", prop.getProperty("com.iot.app.cassandra.password"))
                 .set("spark.cassandra.connection.keep_alive_ms", prop.getProperty("com.iot.app.cassandra.keep_alive"))
-                .setJars(jars);
+                ;
+//                .setJars(jars);
         return new JavaSparkContext(conf);
     }
 

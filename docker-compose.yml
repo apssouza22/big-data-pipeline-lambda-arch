@@ -20,7 +20,7 @@ services:
       depends_on:
         - zookeeper
       environment:
-        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.1.1:9092
+        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.43.100:9092
         KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       volumes:
@@ -42,18 +42,9 @@ services:
     environment:
       - "MAX_HEAP_SIZE=256M"
       - "HEAP_NEWSIZE=128M"
-#      - "CASSANDRA_HOST=cassandra"
     container_name: cassandra-iot
     volumes:
       - ./iot-spark-processor/data/IotData.cql:/schema.cql
-      # - ./data/cassandra/:/bitnami
-      # - ./data/conf/:/bitnami/cassandra/conf/
-    # restart: always
-    # healthcheck:
-    #   test: ["CMD", "cqlsh", "-u cassandra", "-p cassandra" ,"-e describe keyspaces"]
-    #   interval: 15s
-    #   timeout: 100s
-    #   retries: 10
 
 
   spark-master:
@@ -66,12 +57,13 @@ services:
     ports:
       - "8080:8080"
       - "7077:7077"
+      - "4040:4040"
+      - "4041:4041"
     environment:
       - INIT_DAEMON_STEP=false
       - SPARK_DRIVER_HOST=192.168.1.5
     volumes:
-      - ./data/spark/:/opt/spark-data
-
+      - ./iot-spark-processor/target:/opt/spark-data
     networks:
       - net
 
@@ -90,22 +82,6 @@ services:
     networks:
       - net
 
-  spark-driver:
-      image: bde2020/spark-worker:2.4.0-hadoop2.7
-      container_name: spark-driver
-      hostname: spark-driver
-      depends_on:
-        - spark-master
-      ports:
-        - "4040:4040"
-        - "4041:4041"
-        - "8082:8082"
-      environment:
-        - "SPARK_MASTER=spark://spark-master:7077"
-      volumes:
-        - ./iot-spark-processor/target:/opt/spark-data
-      networks:
-        - net
 
   namenode:
     image: bde2020/hadoop-namenode:1.1.0-hadoop2.8-java8
