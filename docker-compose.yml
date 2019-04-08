@@ -1,5 +1,13 @@
 version: "3.3"
 
+
+networks:
+  net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/24
+
 services:
 
   zookeeper:
@@ -20,7 +28,7 @@ services:
       depends_on:
         - zookeeper
       environment:
-        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.43.100:9092
+        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://10.11.50.138:9092
         KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       volumes:
@@ -44,7 +52,7 @@ services:
       - "HEAP_NEWSIZE=128M"
     container_name: cassandra-iot
     volumes:
-      - ./iot-spark-processor/data/IotData.cql:/schema.cql
+      - ./iot-spark-processor/data/IoTData.cql:/schema.cql
 
 
   spark-master:
@@ -120,11 +128,5 @@ services:
      - 50075:50075
      - 50010:50010
 
-networks:
-  net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.22.0.0/24
 
 
