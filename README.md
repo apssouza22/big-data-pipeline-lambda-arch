@@ -93,3 +93,6 @@ http://localhost:50075
 - Log in `cqlsh --username cassandra --password cassandra`
 - Access the keyspace `use TrafficKeySpace;`
 - List data `SELECT * FROM TrafficKeySpace.Total_Traffic;`
+
+## That's all. Leave a star if it helped you!
+
