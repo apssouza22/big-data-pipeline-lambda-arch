@@ -78,8 +78,8 @@ public class RealtimeTrafficDataProcessor {
     }
 
     /**
-     * Method to get window traffic counts of different type of vehicles for each route.
-     * Window duration = 30 seconds and Slide interval = 10 seconds
+     * Method to get window traffic counts of different type of vehicles for each route. Window duration = 30 seconds
+     * and Slide interval = 10 seconds
      *
      * @param filteredIotDataStream IoT data stream
      */
@@ -128,12 +128,18 @@ public class RealtimeTrafficDataProcessor {
 
         // Filter by routeId,vehicleType and in POI range
         JavaDStream<IoTData> iotDataStreamFiltered = nonFilteredIotDataStream
-                .filter(iot -> (iot.getRouteId().equals(broadcastPOIValues.value()._2())
-                        && iot.getVehicleType().contains(broadcastPOIValues.value()._3())
-                        && GeoDistanceCalculator.isInPOIRadius(Double.valueOf(iot.getLatitude()),
-                        Double.valueOf(iot.getLongitude()), broadcastPOIValues.value()._1().getLatitude(),
-                        broadcastPOIValues.value()._1().getLongitude(),
-                        broadcastPOIValues.value()._1().getRadius())));
+                .filter(iot -> (
+                        iot.getRouteId().equals(broadcastPOIValues.value()._2())
+                                && iot.getVehicleType().contains(broadcastPOIValues.value()._3())
+                                &&
+                                GeoDistanceCalculator.isInPOIRadius(
+                                        Double.valueOf(iot.getLatitude()),
+                                        Double.valueOf(iot.getLongitude()),
+                                        broadcastPOIValues.value()._1().getLatitude(),
+                                        broadcastPOIValues.value()._1().getLongitude(),
+                                        broadcastPOIValues.value()._1().getRadius()
+                                )
+                ));
 
         // pair with poi
         JavaPairDStream<IoTData, POIData> poiDStreamPair = iotDataStreamFiltered.mapToPair(
@@ -162,10 +168,11 @@ public class RealtimeTrafficDataProcessor {
     }
 
     //Function to get running sum by maintaining the state
-    private static final Function3<AggregateKey, org.apache.spark.api.java.Optional<Long>, State<Long>, Tuple2<AggregateKey, Long>> totalSumFunc = (key, currentSum, state) -> {
-    Long objectOption = currentSum.get();
-    objectOption = objectOption == null ? 0l :  objectOption;
-    long totalSum = objectOption + (state.exists() ? state.get() : 0);
+    private static final Function3<AggregateKey, org.apache.spark.api.java.Optional<Long>, State<Long>, Tuple2<AggregateKey, Long>>
+            totalSumFunc = (key, currentSum, state) -> {
+        Long objectOption = currentSum.get();
+        objectOption = objectOption == null ? 0l : objectOption;
+        long totalSum = objectOption + (state.exists() ? state.get() : 0);
         Tuple2<AggregateKey, Long> total = new Tuple2<>(key, totalSum);
         state.update(totalSum);
         return total;
@@ -173,7 +180,9 @@ public class RealtimeTrafficDataProcessor {
 
     //Function to create TotalTrafficData object from IoT data
     private static final Function<Tuple2<AggregateKey, Long>, TotalTrafficData> totalTrafficDataFunc = (tuple -> {
-        logger.debug("Total Count : " + "key " + tuple._1().getRouteId() + "-" + tuple._1().getVehicleType() + " value " + tuple._2());
+        logger.debug(
+                "Total Count : " + "key " + tuple._1().getRouteId() + "-" + tuple._1().getVehicleType() + " value " +
+                        tuple._2());
         TotalTrafficData trafficData = new TotalTrafficData();
         trafficData.setRouteId(tuple._1().getRouteId());
         trafficData.setVehicleType(tuple._1().getVehicleType());
@@ -185,7 +194,9 @@ public class RealtimeTrafficDataProcessor {
 
     //Function to create WindowTrafficData object from IoT data
     private static final Function<Tuple2<AggregateKey, Long>, WindowTrafficData> windowTrafficDataFunc = (tuple -> {
-        logger.debug("Window Count : " + "key " + tuple._1().getRouteId() + "-" + tuple._1().getVehicleType() + " value " + tuple._2());
+        logger.debug(
+                "Window Count : " + "key " + tuple._1().getRouteId() + "-" + tuple._1().getVehicleType() + " value " +
+                        tuple._2());
         WindowTrafficData trafficData = new WindowTrafficData();
         trafficData.setRouteId(tuple._1().getRouteId());
         trafficData.setVehicleType(tuple._1().getVehicleType());
@@ -206,7 +217,8 @@ public class RealtimeTrafficDataProcessor {
                 Double.valueOf(tuple._1.getLongitude()).doubleValue(),
                 tuple._2.getLatitude(), tuple._2.getLongitude()
         );
-        logger.debug("Distance for " + tuple._1.getLatitude() + "," + tuple._1.getLongitude() + "," + tuple._2.getLatitude() + "," + tuple._2.getLongitude() + " = " + distance);
+        logger.debug("Distance for " + tuple._1.getLatitude() + "," + tuple._1.getLongitude() + "," +
+                tuple._2.getLatitude() + "," + tuple._2.getLongitude() + " = " + distance);
         poiTraffic.setDistance(distance);
         return poiTraffic;
     });

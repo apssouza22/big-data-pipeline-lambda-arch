@@ -21,12 +21,14 @@ import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.api.java.*;
+
 import com.iot.app.spark.util.IoTDataDeserializer;
 import com.iot.app.spark.util.PropertyFileReader;
 import com.iot.app.spark.dto.IoTData;
 import com.iot.app.spark.dto.POIData;
 
 import org.apache.spark.streaming.kafka010.*;
+
 import scala.Tuple2;
 import scala.Tuple3;
 
@@ -59,19 +61,19 @@ public class StreamingProcessor implements Serializable {
 
         //batch interval of 5 seconds for incoming stream
         JavaStreamingContext jssc = new JavaStreamingContext(conf, Durations.seconds(5));
-        final SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
         jssc.checkpoint(prop.getProperty("com.iot.app.spark.checkpoint.dir"));
+
+        final SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
         Map<TopicPartition, Long> lastOffSet = getLatestOffSet(sparkSession, prop);
-//        Map<TopicPartition, Long> lastOffSet = Collections.EMPTY_MAP;
-        JavaInputDStream<ConsumerRecord<String, IoTData>> directKafkaStream = getStream(prop, jssc, kafkaProperties, lastOffSet);
+        JavaInputDStream<ConsumerRecord<String, IoTData>> directKafkaStream = getStream(
+                prop,
+                jssc,
+                kafkaProperties, lastOffSet
+        );
 
         logger.info("Starting Stream Processing");
 
-        JavaDStream<IoTData> transformedStream = directKafkaStream.transform(item -> {
-            return getEnhancedObjWithKafkaInfo(item);
-        });
-
-        processStream(prop, jssc, sparkSession, transformedStream);
+        processStream(prop, jssc, sparkSession, directKafkaStream);
         commitOffset(directKafkaStream);
 
         jssc.start();
@@ -109,10 +111,13 @@ public class StreamingProcessor implements Serializable {
                     .collect()
                     .stream()
                     .map(row -> {
-                        TopicPartition topicPartition = new TopicPartition(row.getString(row.fieldIndex("topic")), row.getInt(row.fieldIndex("kafkaPartition")));
+                        TopicPartition topicPartition = new TopicPartition(
+                                row.getString(row.fieldIndex("topic")),
+                                row.getInt(row.fieldIndex("kafkaPartition"))
+                        );
                         Tuple2<TopicPartition, Long> key = new Tuple2<>(
                                 topicPartition,
-                                Long.valueOf(row.getString(row.fieldIndex("untilOffset")))
+                                row.getLong(row.fieldIndex("untilOffset"))
                         );
                         return key;
                     })
@@ -128,21 +133,18 @@ public class StreamingProcessor implements Serializable {
         OffsetRange[] offsetRanges = ((HasOffsetRanges) item.rdd()).offsetRanges();
 
         return item.mapPartitionsWithIndex((index, items) -> {
-            Map<String, String> meta = new HashMap<String, String>() {{
-                int partition = offsetRanges[index].partition();
-                long from = offsetRanges[index].fromOffset();
-                long until = offsetRanges[index].untilOffset();
-
-                put("topic", offsetRanges[index].topic());
-                put("fromOffset", "" + from);
-                put("kafkaPartition", "" + partition);
-                put("untilOffset", "" + until);
-            }};
             List<IoTData> list = new ArrayList<>();
             while (items.hasNext()) {
                 ConsumerRecord<String, IoTData> next = items.next();
                 IoTData dataItem = next.value();
+
+                Map<String, String> meta = new HashMap<>();
+                meta.put("topic", offsetRanges[index].topic());
+                meta.put("fromOffset", "" + offsetRanges[index].fromOffset());
+                meta.put("kafkaPartition", "" + offsetRanges[index].partition());
+                meta.put("untilOffset", "" + offsetRanges[index].untilOffset());
                 meta.put("dayOfWeek", "" + dataItem.getTimestamp().toLocalDate().getDayOfWeek().getValue());
+
                 dataItem.setMetaData(meta);
                 list.add(dataItem);
             }
@@ -161,9 +163,15 @@ public class StreamingProcessor implements Serializable {
         return kafkaProperties;
     }
 
-    private void processStream(Properties prop, JavaStreamingContext jssc, SparkSession sql, JavaDStream<IoTData> nonFilteredIotDataStream) throws IOException {
-        appendDataToHDFS(prop, sql, nonFilteredIotDataStream);
-        JavaDStream<IoTData> filteredIotDataStream = getVehicleNotProcessed(nonFilteredIotDataStream);
+    private void processStream(
+            Properties prop,
+            JavaStreamingContext jsc,
+            SparkSession sql,
+            final JavaInputDStream<ConsumerRecord<String, IoTData>> directKafkaStream
+    ) throws IOException {
+        JavaDStream<IoTData> transformedStream = directKafkaStream.transform(item -> getEnhancedObjWithKafkaInfo(item));
+        appendDataToHDFS(prop, sql, transformedStream);
+        JavaDStream<IoTData> filteredIotDataStream = getVehicleNotProcessed(transformedStream);
 
         //cache stream as it is used in many computation
         filteredIotDataStream.cache();
@@ -172,7 +180,7 @@ public class StreamingProcessor implements Serializable {
         RealtimeTrafficDataProcessor iotTrafficProcessor = new RealtimeTrafficDataProcessor();
         iotTrafficProcessor.processTotalTrafficData(filteredIotDataStream);
         iotTrafficProcessor.processWindowTrafficData(filteredIotDataStream);
-        processPOI(jssc, nonFilteredIotDataStream, iotTrafficProcessor);
+        processPOI(jsc, transformedStream, iotTrafficProcessor);
 
         RealTimeHeatMapProcessor realTimeHeatMapProcessor = new RealTimeHeatMapProcessor();
         realTimeHeatMapProcessor.processHeatMap(filteredIotDataStream);
@@ -185,11 +193,12 @@ public class StreamingProcessor implements Serializable {
                 .reduceByKey((a, b) -> a);
 
         // Check vehicle Id is already processed
+        StateSpec<String, IoTData, Boolean, Tuple2<IoTData, Boolean>> stateFunc = StateSpec
+                .function(processedVehicleFunc)
+                .timeout(Durations.seconds(3600));//maintain state for one hour
+
         JavaMapWithStateDStream<String, IoTData, Boolean, Tuple2<IoTData, Boolean>> iotDStreamWithStatePairs =
-                iotDataPairStream
-                        .mapWithState(
-                                StateSpec.function(processedVehicleFunc).timeout(Durations.seconds(3600))
-                        );//maintain state for one hour
+                iotDataPairStream.mapWithState(stateFunc);
 
         // Filter processed vehicle ids and keep un-processed
         JavaDStream<Tuple2<IoTData, Boolean>> filteredIotDStreams = iotDStreamWithStatePairs
@@ -228,17 +237,18 @@ public class StreamingProcessor implements Serializable {
             Map<TopicPartition, Long> fromOffsets
     ) {
         List<String> topicSet = Arrays.asList(new String[]{prop.getProperty("com.iot.app.kafka.topic")});
-        ConsumerStrategy<String, IoTData> subscribe;
         if (fromOffsets.isEmpty()) {
-            subscribe = ConsumerStrategies.<String, IoTData>Subscribe(topicSet, kafkaProperties);
-        } else {
-            subscribe = ConsumerStrategies.<String, IoTData>Subscribe(topicSet, kafkaProperties, fromOffsets);
+            return KafkaUtils.createDirectStream(
+                    jssc,
+                    LocationStrategies.PreferConsistent(),
+                    ConsumerStrategies.Subscribe(topicSet, kafkaProperties)
+            );
         }
 
         return KafkaUtils.createDirectStream(
                 jssc,
                 LocationStrategies.PreferConsistent(),
-                subscribe
+                ConsumerStrategies.Subscribe(topicSet, kafkaProperties, fromOffsets)
         );
     }
 
@@ -252,7 +262,7 @@ public class StreamingProcessor implements Serializable {
                 .set("spark.cassandra.auth.password", prop.getProperty("com.iot.app.cassandra.password"))
                 .set("spark.cassandra.connection.keep_alive_ms", prop.getProperty("com.iot.app.cassandra.keep_alive"))
                 ;
-//                .setJars(jars);
+        //                .setJars(jars);
     }
 
     private void processPOI(
@@ -268,13 +278,16 @@ public class StreamingProcessor implements Serializable {
 
         //broadcast variables. We will monitor vehicles on Route 37 which are of type Truck
         //Basically we are sending the data to each worker nodes on a Spark cluster.
-        Broadcast<Tuple3<POIData, String, String>> broadcastPOIValues = jssc.sparkContext().broadcast(new Tuple3<>(poiData, "Route-37", "Truck"));
+        Broadcast<Tuple3<POIData, String, String>> broadcastPOIValues = jssc.sparkContext()
+                .broadcast(new Tuple3<>(poiData, "Route-37", "Truck"));
+
         //call method  to process stream
         iotTrafficProcessor.processPOIData(nonFilteredIotDataStream, broadcastPOIValues);
     }
 
     //Function to check processed vehicles.
-    private final Function3<String, org.apache.spark.api.java.Optional<IoTData>, State<Boolean>, Tuple2<IoTData, Boolean>> processedVehicleFunc = (String, iot, state) -> {
+    private final Function3<String, org.apache.spark.api.java.Optional<IoTData>, State<Boolean>, Tuple2<IoTData, Boolean>>
+            processedVehicleFunc = (String, iot, state) -> {
         Tuple2<IoTData, Boolean> vehicle = new Tuple2<>(iot.get(), false);
         if (state.exists()) {
             vehicle = new Tuple2<>(iot.get(), true);
