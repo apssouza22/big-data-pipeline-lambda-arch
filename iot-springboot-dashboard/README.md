@@ -20,7 +20,7 @@ You can build and run this application using below commands. Please check resour
 
 ```sh
 mvn package
-mvn exec:java -Dexec.mainClass="com.iot.app.springboot.dashboard.IoTDataDashboard"
+mvn exec:java -Dexec.mainClass="IoTDataDashboard"
 ```
 
 Alternate way to run this application is using the “iot-springboot-dashboard-1.0.0.jar” file created by maven. Open command prompt, go to target folder and execute below command.
@@ -28,4 +28,4 @@ Alternate way to run this application is using the “iot-springboot-dashboard-1
 ```sh
 java -jar iot-springboot-dashboard-1.0.0.jar
 ```
-Open browser and entre http://localhost:8080 to see the Dashboard
+Open browser and enter http://localhost:3000 to see the Dashboard

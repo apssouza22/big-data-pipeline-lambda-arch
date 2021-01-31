@@ -1,12 +1,12 @@
-package com.iot.app.springboot.vo;
+package com.apssouza.iot.dashboard;
 
 import java.io.Serializable;
 import java.util.List;
 
-import com.iot.app.springboot.dao.entity.HeatMapData;
-import com.iot.app.springboot.dao.entity.POITrafficData;
-import com.iot.app.springboot.dao.entity.TotalTrafficData;
-import com.iot.app.springboot.dao.entity.WindowTrafficData;
+import com.apssouza.iot.dao.entity.HeatMapData;
+import com.apssouza.iot.dao.entity.POITrafficData;
+import com.apssouza.iot.dao.entity.TotalTrafficData;
+import com.apssouza.iot.dao.entity.WindowTrafficData;
 
 /**
  * Response object containing traffic details that will be sent to dashboard.

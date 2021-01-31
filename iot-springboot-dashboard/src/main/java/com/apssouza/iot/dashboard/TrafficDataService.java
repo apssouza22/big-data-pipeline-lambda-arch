@@ -1,4 +1,4 @@
-package com.iot.app.springboot.dashboard;
+package com.apssouza.iot.dashboard;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -7,25 +7,22 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import com.iot.app.springboot.dao.HeatMapDataRepository;
-import com.iot.app.springboot.dao.entity.HeatMapData;
+import com.apssouza.iot.dao.TotalTrafficDataRepository;
+import com.apssouza.iot.dao.entity.TotalTrafficData;
+import com.apssouza.iot.dao.HeatMapDataRepository;
+import com.apssouza.iot.dao.entity.HeatMapData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.iot.app.springboot.dao.POITrafficDataRepository;
-import com.iot.app.springboot.dao.TotalTrafficDataRepository;
-import com.iot.app.springboot.dao.WindowTrafficDataRepository;
-import com.iot.app.springboot.dao.entity.POITrafficData;
-import com.iot.app.springboot.dao.entity.TotalTrafficData;
-import com.iot.app.springboot.dao.entity.WindowTrafficData;
-import com.iot.app.springboot.vo.Response;
+import com.apssouza.iot.dao.POITrafficDataRepository;
+import com.apssouza.iot.dao.WindowTrafficDataRepository;
+import com.apssouza.iot.dao.entity.POITrafficData;
+import com.apssouza.iot.dao.entity.WindowTrafficData;
 
 /**
  * Service class to send traffic data messages to dashboard ui at fixed interval using web-socket.
- *
- * @author abaghel
  */
 @Service
 public class TrafficDataService {
@@ -51,9 +48,9 @@ public class TrafficDataService {
     //Method sends traffic data message in every 5 seconds.
     @Scheduled(fixedRate = 5000)
     public void trigger() {
-        List<TotalTrafficData> totalTrafficList = new ArrayList<TotalTrafficData>();
-        List<WindowTrafficData> windowTrafficList = new ArrayList<WindowTrafficData>();
-        List<POITrafficData> poiTrafficList = new ArrayList<POITrafficData>();
+        List<TotalTrafficData> totalTrafficList = new ArrayList<>();
+        List<WindowTrafficData> windowTrafficList = new ArrayList<>();
+        List<POITrafficData> poiTrafficList = new ArrayList<>();
         List<HeatMapData> heatmapData = new ArrayList<>();
         //Call dao methods
         totalRepository.findTrafficDataByDate(sdf.format(new Date())).forEach(e -> totalTrafficList.add(e));

@@ -1,8 +1,7 @@
-package com.iot.app.springboot.dashboard;
+package com.apssouza.iot;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.cassandra.repository.config.EnableCassandraRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -13,8 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @SpringBootApplication
 @EnableScheduling
-@ComponentScan(basePackages = {"com.iot.app.springboot.dashboard"})
-@EnableCassandraRepositories("com.iot.app.springboot.dao")
+@EnableCassandraRepositories("com.apssouza.iot.dao")
 public class IoTDataDashboard {
     public static void main(String[] args) {
         SpringApplication.run(IoTDataDashboard.class, args);

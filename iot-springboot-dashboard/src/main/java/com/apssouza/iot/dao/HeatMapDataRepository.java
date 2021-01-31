@@ -1,7 +1,8 @@
-package com.iot.app.springboot.dao;
+package com.apssouza.iot.dao;
 
-import com.iot.app.springboot.dao.entity.HeatMapData;
-import com.iot.app.springboot.dao.entity.TotalTrafficData;
+import com.apssouza.iot.dao.entity.HeatMapData;
+import com.apssouza.iot.dao.entity.TotalTrafficData;
+
 import org.springframework.data.cassandra.repository.CassandraRepository;
 import org.springframework.data.cassandra.repository.Query;
 import org.springframework.stereotype.Repository;

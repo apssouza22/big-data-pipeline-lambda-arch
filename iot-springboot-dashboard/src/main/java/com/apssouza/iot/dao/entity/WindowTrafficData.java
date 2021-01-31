@@ -1,4 +1,5 @@
-package com.iot.app.springboot.dao.entity;
+package com.apssouza.iot.dao.entity;
+
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
@@ -10,13 +11,13 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * Entity class for total_traffic db table
+ * Entity class for window_traffic db table
  * 
  * @author abaghel
  *
  */
-@Table("total_traffic")
-public class TotalTrafficData implements Serializable{
+@Table("window_traffic")
+public class WindowTrafficData implements Serializable{
 	@PrimaryKeyColumn(name = "routeid",ordinal = 0,type = PrimaryKeyType.PARTITIONED)
 	private String routeId;
 	@PrimaryKeyColumn(name = "recordDate",ordinal = 1,type = PrimaryKeyType.CLUSTERED)
