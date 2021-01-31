@@ -36,7 +36,6 @@ The streaming part of the project was done from iot-traffic-project [InfoQ](http
 ## How to use
 *  Set the KAFKA_ADVERTISED_LISTENERS with your IP in the docker-compose.yml
 * `mvn package`
-* `docker network create -d bridge lambda_net`
 * `docker-compose -p lambda up`
 *  Wait all services be up and running, then...
 * `./project-orchestrate.sh`
@@ -94,5 +93,5 @@ http://localhost:50075
 - Access the keyspace `use TrafficKeySpace;`
 - List data `SELECT * FROM TrafficKeySpace.Total_Traffic;`
 
-## That's all. Leave a star if it helped you!
+## That's all. Leave a star if this project has helped you!
 

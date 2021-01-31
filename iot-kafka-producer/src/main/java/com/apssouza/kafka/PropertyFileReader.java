@@ -1,4 +1,4 @@
-package com.iot.app.kafka.util;
+package com.apssouza.kafka;
 
 import java.io.IOException;
 import java.io.InputStream;

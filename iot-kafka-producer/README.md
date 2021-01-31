@@ -10,7 +10,7 @@ You can build and run this application using below commands. Please check resour
 
 ```sh
 mvn package
-mvn exec:java -Dexec.mainClass="com.iot.app.kafka.producer.IoTDataProducer"
+mvn exec:java -Dexec.mainClass="IoTDataProducer"
 
 ```
 

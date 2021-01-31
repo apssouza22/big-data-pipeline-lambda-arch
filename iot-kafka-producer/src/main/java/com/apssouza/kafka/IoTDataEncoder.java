@@ -1,10 +1,9 @@
-package com.iot.app.kafka.util;
+package com.apssouza.kafka;
 
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.iot.app.kafka.vo.IoTData;
 
 import kafka.serializer.Encoder;
 import kafka.utils.VerifiableProperties;

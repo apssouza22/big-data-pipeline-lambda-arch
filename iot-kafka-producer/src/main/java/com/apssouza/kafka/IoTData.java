@@ -1,4 +1,4 @@
-package com.iot.app.kafka.vo;
+package com.apssouza.kafka;
 
 import java.io.Serializable;
 import java.util.Date;
