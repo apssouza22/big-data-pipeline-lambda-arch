@@ -17,6 +17,7 @@ import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaMapWithStateDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
+import org.joda.time.Duration;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.iot.app.spark.entity.POITrafficData;
@@ -163,7 +164,7 @@ public class RealtimeTrafficDataProcessor {
                         "poi_traffic",
                         CassandraJavaUtil.mapToRow(POITrafficData.class, columnNameMappings)
                 )
-                .withConstantTTL(120)//keeping data for 2 minutes
+                .withConstantTTL(Duration.standardSeconds(2))//keeping data for 2 minutes
                 .saveToCassandra();
     }
 

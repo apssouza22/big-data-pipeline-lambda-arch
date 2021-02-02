@@ -10,7 +10,7 @@ package com.iot.app.spark.util;
  */
 public class GeoDistanceCalculator {
 	/**
-	 * Method to get shortest distance over the earth’s surface in Kilometer between two locations
+	 * Method to get shortest distance over the earths surface in Kilometer between two locations
 	 * 
 	 * @param lat1 latitude of location A
 	 * @param lon1 longitude of location A

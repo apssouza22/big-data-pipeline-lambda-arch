@@ -28,7 +28,7 @@ services:
       depends_on:
         - zookeeper
       environment:
-        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.43.44:9092
+        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.0.139:9092
         KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       volumes:
@@ -54,9 +54,8 @@ services:
     volumes:
       - ./iot-spark-processor/data/IoTData.cql:/schema.cql
 
-
   spark-master:
-    image: bde2020/spark-master:2.4.0-hadoop2.7
+    image: bde2020/spark-master:3.0.0-hadoop3.2-java11
     container_name: spark-master
     hostname: spark-master
     healthcheck:
@@ -76,7 +75,7 @@ services:
       - net
 
   spark-worker-1:
-    image: bde2020/spark-worker:2.4.0-hadoop2.7
+    image: bde2020/spark-worker:3.0.0-hadoop3.2-java11
     container_name: spark-worker-1
     hostname: spark-worker-1
     depends_on:

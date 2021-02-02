@@ -177,7 +177,7 @@ public class BatchTrafficDataProcessor {
                         "poi_traffic_batch",
                         CassandraJavaUtil.mapToRow(POITrafficData.class, columnNameMappings)
                 )
-                .withConstantTTL(120)//keeping data for 2 minutes
+//                .withConstantTTL(120)//keeping data for 2 minutes
                 .saveToCassandra();
     }
 

@@ -4,11 +4,10 @@ import com.iot.app.spark.dto.IoTData;
 import com.iot.app.spark.util.PropertyFileReader;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.SparkSession;
 
 import java.util.Properties;
 
@@ -20,14 +19,14 @@ public class BatchProcessor {
         String file = prop.getProperty("com.iot.app.hdfs") + "iot-data-parque";
         String[] jars = {prop.getProperty("com.iot.app.jar")};
 
-        JavaSparkContext sparkContext = getSparkContext(prop, jars);
-        SQLContext sqlContext = new SQLContext(sparkContext);
-        Dataset<Row> dataFrame = getDataFrame(sqlContext, file);
+        SparkConf conf = getSparkConfig(prop, jars);
+        final SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
+        Dataset<Row> dataFrame = getDataFrame(sparkSession, file);
         JavaRDD<IoTData> rdd = dataFrame.javaRDD().map(getRowIoTDataFunction());
         BatchHeatMapProcessor processor = new BatchHeatMapProcessor();
         processor.processHeatMap(rdd);
-        sparkContext.close();
-        sparkContext.stop();
+        sparkSession.close();
+        sparkSession.stop();
     }
 
 
@@ -45,13 +44,13 @@ public class BatchProcessor {
     }
 
 
-    public static Dataset<Row> getDataFrame(SQLContext sqlContext, String file) {
+    public static Dataset<Row> getDataFrame(SparkSession sqlContext, String file) {
         return sqlContext.read()
                 .parquet(file);
     }
 
 
-    private static JavaSparkContext getSparkContext(Properties prop, String[] jars) {
+    private static SparkConf getSparkConfig(Properties prop, String[] jars) {
         SparkConf conf = new SparkConf()
                 .setAppName(prop.getProperty("com.iot.app.spark.app.name"))
                 .setMaster(prop.getProperty("com.iot.app.spark.master"))
@@ -62,7 +61,7 @@ public class BatchProcessor {
                 .set("spark.cassandra.connection.keep_alive_ms", prop.getProperty("com.iot.app.cassandra.keep_alive"))
                 ;
 //                .setJars(jars);
-        return new JavaSparkContext(conf);
+        return conf;
     }
 
 }
