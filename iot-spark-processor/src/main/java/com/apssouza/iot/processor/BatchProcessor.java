@@ -1,7 +1,8 @@
-package com.iot.app.spark.processor;
+package com.apssouza.iot.processor;
 
-import com.iot.app.spark.dto.IoTData;
-import com.iot.app.spark.util.PropertyFileReader;
+import com.apssouza.iot.util.PropertyFileReader;
+import com.apssouza.iot.dto.IoTData;
+
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;

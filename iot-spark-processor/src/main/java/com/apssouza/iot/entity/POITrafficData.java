@@ -1,4 +1,4 @@
-package com.iot.app.spark.entity;
+package com.apssouza.iot.entity;
 
 import java.io.Serializable;
 import java.util.Date;

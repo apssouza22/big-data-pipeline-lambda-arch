@@ -1,10 +1,10 @@
-package com.iot.app.spark.processor;
+package com.apssouza.iot.processor;
 
+import com.apssouza.iot.dto.Coordinate;
+import com.apssouza.iot.dto.Measurement;
+import com.apssouza.iot.entity.HeatMapData;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
-import com.iot.app.spark.dto.Coordinate;
-import com.iot.app.spark.entity.HeatMapData;
-import com.iot.app.spark.dto.Measurement;
-import com.iot.app.spark.dto.IoTData;
+import com.apssouza.iot.dto.IoTData;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;

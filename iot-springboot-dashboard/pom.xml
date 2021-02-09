@@ -8,7 +8,7 @@
 		<version>2.1.2.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-    <groupId>com.iot.app.springboot</groupId>
+    <groupId>com.apssouza.iot</groupId>
     <artifactId>iot-springboot-dashboard</artifactId>
     <version>1.0.0</version>
     <name>IoT Spring Boot Dashboard</name>

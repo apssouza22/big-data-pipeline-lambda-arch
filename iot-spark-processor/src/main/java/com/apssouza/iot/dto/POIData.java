@@ -1,4 +1,4 @@
-package com.iot.app.spark.dto;
+package com.apssouza.iot.dto;
 
 import java.io.Serializable;
 

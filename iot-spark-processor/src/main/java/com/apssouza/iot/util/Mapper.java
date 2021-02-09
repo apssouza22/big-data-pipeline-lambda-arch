@@ -1,6 +1,6 @@
-package com.iot.app.spark.util;
+package com.apssouza.iot.util;
 
-import com.iot.app.spark.dto.IoTData;
+import com.apssouza.iot.dto.IoTData;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

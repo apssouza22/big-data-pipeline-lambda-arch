@@ -1,15 +1,15 @@
-package com.iot.app.spark.util;
+package com.apssouza.iot.util;
 
 
-import com.iot.app.spark.dto.Measurement;
+import com.apssouza.iot.dto.IoTData;
 
 import java.io.Serializable;
 import java.util.Comparator;
 
-public class TimestampComparator implements Comparator<Measurement>, Serializable {
+public class IotDataTimestampComparator implements Comparator<IoTData>, Serializable {
 
   @Override
-  public int compare(Measurement o1, Measurement o2) {
+  public int compare(IoTData o1, IoTData o2) {
     if(o1 == null && o2 == null) {
       return 0;
     } else if(o1 == null || o1.getTimestamp() == null) {

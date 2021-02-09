@@ -39,22 +39,22 @@ The streaming part of the project was done from iot-traffic-project [InfoQ](http
 * `docker-compose -p lambda up`
 *  Wait all services be up and running, then...
 * `./project-orchestrate.sh`
-* Run realtime job `docker exec spark-master /spark/bin/spark-submit --class com.iot.app.spark.processor.StreamingProcessor  --master spark://localhost:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar`
+* Run realtime job `docker exec spark-master /spark/bin/spark-submit --class StreamingProcessor  --master spark://localhost:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar`
 * Run the traffic producer `java -jar iot-kafka-producer/target/iot-kafka-producer-1.0.0.jar`
 * Run the service layer (Web app) `java -jar iot-springboot-dashboard/target/iot-springboot-dashboard-1.0.0.jar` 
 * Access the dashboard with the data http://localhost:3000/
-* Run batch job `docker exec spark-master /spark/bin/spark-submit --class com.iot.app.spark.processor.BatchProcessor  --master spark://localhost:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar`
+* Run batch job `docker exec spark-master /spark/bin/spark-submit --class BatchProcessor  --master spark://localhost:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar`
 
 ### Miscellaneous
 
 #### Spark
-spark-submit --class com.iot.app.spark.processor.StreamingProcessor --packages org.apache.kafka:kafka-clients:0.10.2.2 --master spark://spark-master:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar
+spark-submit --class StreamingProcessor --packages org.apache.kafka:kafka-clients:0.10.2.2 --master spark://spark-master:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar
 Add spark-master to /etc/hosts pointing to localhost
 /spark/bin/spark-submit 
 
 #### Submit a job to master
 - mvn package
-- `spark-submit --class com.iot.app.spark.processor.StreamingProcessor --master spark://spark-master:7077 /Users/apssouza/Projetos/opensource/iot-traffic-monitor/iot-spark-processor/target/iot-spark-processor-1.0.0.jar`
+- `spark-submit --class StreamingProcessor --master spark://spark-master:7077 /Users/apssouza/Projetos/opensource/iot-traffic-monitor/iot-spark-processor/target/iot-spark-processor-1.0.0.jar`
 
 
 #### GUI

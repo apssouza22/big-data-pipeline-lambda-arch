@@ -1,4 +1,4 @@
-package com.iot.app.spark.util;
+package com.apssouza.iot.util;
 
 /**
  * Class to calculate the distance between to locations on earth using coordinates (latitude and longitude).

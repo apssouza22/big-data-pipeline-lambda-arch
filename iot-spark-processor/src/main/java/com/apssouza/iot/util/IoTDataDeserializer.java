@@ -1,7 +1,7 @@
-package com.iot.app.spark.util;
+package com.apssouza.iot.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.iot.app.spark.dto.IoTData;
+import com.apssouza.iot.dto.IoTData;
 
 import org.apache.kafka.common.serialization.Deserializer;
 

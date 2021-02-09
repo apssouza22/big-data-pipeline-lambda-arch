@@ -1,11 +1,11 @@
-package com.iot.app.spark.processor;
+package com.apssouza.iot.processor;
 
+import com.apssouza.iot.dto.Measurement;
+import com.apssouza.iot.entity.HeatMapData;
+import com.apssouza.iot.util.TimestampComparator;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
-import com.iot.app.spark.dto.Coordinate;
-import com.iot.app.spark.entity.HeatMapData;
-import com.iot.app.spark.dto.Measurement;
-import com.iot.app.spark.util.TimestampComparator;
-import com.iot.app.spark.dto.IoTData;
+import com.apssouza.iot.dto.Coordinate;
+import com.apssouza.iot.dto.IoTData;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import scala.Tuple2;
