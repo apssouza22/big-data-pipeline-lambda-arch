@@ -31,14 +31,13 @@ import scala.Tuple2;
 import scala.Tuple3;
 
 public class StreamProcessor {
+
     final JavaInputDStream<ConsumerRecord<String, IoTData>> directKafkaStream;
     private JavaDStream<IoTData> transformedStream;
     private JavaDStream<IoTData> filteredStream;
 
 
-    public StreamProcessor(
-            final JavaInputDStream<ConsumerRecord<String, IoTData>> directKafkaStream
-    ) {
+    public StreamProcessor(JavaInputDStream<ConsumerRecord<String, IoTData>> directKafkaStream) {
         this.directKafkaStream = directKafkaStream;
     }
 
@@ -146,20 +145,17 @@ public class StreamProcessor {
     }
 
     public StreamProcessor processTotalTrafficData() {
-        RealtimeTrafficDataProcessor iotTrafficProcessor = new RealtimeTrafficDataProcessor();
-        iotTrafficProcessor.processTotalTrafficData(filteredStream);
+        RealtimeTrafficDataProcessor.processTotalTrafficData(filteredStream);
         return this;
     }
 
     public StreamProcessor processWindowTrafficData() {
-        RealtimeTrafficDataProcessor iotTrafficProcessor = new RealtimeTrafficDataProcessor();
-        iotTrafficProcessor.processWindowTrafficData(filteredStream);
+        RealtimeTrafficDataProcessor.processWindowTrafficData(filteredStream);
         return this;
     }
 
     public StreamProcessor processHeatMap() throws IOException {
-        RealTimeHeatMapProcessor realTimeHeatMapProcessor = new RealTimeHeatMapProcessor();
-        realTimeHeatMapProcessor.processHeatMap(filteredStream);
+        RealTimeHeatMapProcessor.processHeatMap(filteredStream);
         return this;
     }
 }

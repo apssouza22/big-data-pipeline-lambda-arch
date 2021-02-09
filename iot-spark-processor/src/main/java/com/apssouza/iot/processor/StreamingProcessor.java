@@ -70,7 +70,8 @@ public class StreamingProcessor implements Serializable {
 
         //broadcast variables. We will monitor vehicles on Route 37 which are of type Truck
         //Basically we are sending the data to each worker nodes on a Spark cluster.
-        Broadcast<Tuple3<POIData, String, String>> broadcastPOIValues = streamingContext.sparkContext()
+        var broadcastPOIValues = streamingContext
+                .sparkContext()
                 .broadcast(new Tuple3<>(getPointOfInterest(), "Route-37", "Truck"));
 
         StreamProcessor streamProcessor = new StreamProcessor(kafkaStream);
