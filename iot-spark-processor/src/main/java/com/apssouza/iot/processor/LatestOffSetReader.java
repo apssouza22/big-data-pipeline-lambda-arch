@@ -41,9 +41,9 @@ public class LatestOffSetReader {
 
     public Map<TopicPartition, Long> offsets() throws AnalysisException {
         return this.query()
-                .map(LatestOffSetReader::mapToPartition)
                 .collect()
                 .stream()
+                .map(LatestOffSetReader::mapToPartition)
                 .collect(Collectors.toMap(Tuple2::_1, Tuple2::_2));
     }
 

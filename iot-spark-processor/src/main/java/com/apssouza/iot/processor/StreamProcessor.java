@@ -32,12 +32,12 @@ import scala.Tuple3;
 
 public class StreamProcessor {
 
-    final JavaInputDStream<ConsumerRecord<String, IoTData>> directKafkaStream;
+    final JavaDStream<ConsumerRecord<String, IoTData>> directKafkaStream;
     private JavaDStream<IoTData> transformedStream;
     private JavaDStream<IoTData> filteredStream;
 
 
-    public StreamProcessor(JavaInputDStream<ConsumerRecord<String, IoTData>> directKafkaStream) {
+    public StreamProcessor(JavaDStream<ConsumerRecord<String, IoTData>> directKafkaStream) {
         this.directKafkaStream = directKafkaStream;
     }
 
@@ -102,7 +102,7 @@ public class StreamProcessor {
 
     public StreamProcessor filterVehicle() {
         // Check vehicle Id is already processed
-        var stateFunc = StateSpec
+        StateSpec<String, IoTData, Boolean, Tuple2<IoTData, Boolean>> stateFunc = StateSpec
                 .function(this::updateState)
                 .timeout(Durations.seconds(3600));//maintain state for one hour
 

@@ -1,29 +1,35 @@
 package com.apssouza.iot.processor;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.*;
+import com.apssouza.iot.dto.IoTData;
+import com.apssouza.iot.dto.POIData;
+import com.apssouza.iot.util.IoTDataDeserializer;
+import com.apssouza.iot.util.PropertyFileReader;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.OffsetAndMetadata;
-import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.broadcast.Broadcast;
-import org.apache.spark.sql.*;
+import org.apache.spark.sql.SparkSession;
 import org.apache.spark.streaming.Durations;
-import org.apache.spark.streaming.api.java.*;
+import org.apache.spark.streaming.api.java.JavaInputDStream;
+import org.apache.spark.streaming.api.java.JavaStreamingContext;
+import org.apache.spark.streaming.kafka010.CanCommitOffsets;
+import org.apache.spark.streaming.kafka010.ConsumerStrategies;
+import org.apache.spark.streaming.kafka010.HasOffsetRanges;
+import org.apache.spark.streaming.kafka010.KafkaUtils;
+import org.apache.spark.streaming.kafka010.LocationStrategies;
+import org.apache.spark.streaming.kafka010.OffsetRange;
 
-import com.apssouza.iot.dto.POIData;
-import com.apssouza.iot.util.IoTDataDeserializer;
-import com.apssouza.iot.util.PropertyFileReader;
-import com.apssouza.iot.dto.IoTData;
-
-import org.apache.spark.streaming.kafka010.*;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import scala.Tuple3;
 
@@ -70,7 +76,7 @@ public class StreamingProcessor implements Serializable {
 
         //broadcast variables. We will monitor vehicles on Route 37 which are of type Truck
         //Basically we are sending the data to each worker nodes on a Spark cluster.
-        var broadcastPOIValues = streamingContext
+        Broadcast<Tuple3<POIData, String, String>>  broadcastPOIValues = streamingContext
                 .sparkContext()
                 .broadcast(new Tuple3<>(getPointOfInterest(), "Route-37", "Truck"));
 
@@ -111,10 +117,10 @@ public class StreamingProcessor implements Serializable {
 
                 CanCommitOffsets canCommitOffsets = (CanCommitOffsets) directKafkaStream.inputDStream();
                 canCommitOffsets.commitAsync(offsetRanges, (offsets, exception) -> {
-                    var log = Logger.getLogger(StreamingProcessor.class);
-                    log.info("---------------------------------------------------");
-                    log.info(String.format("{0} | {1}", new Object[]{offsets, exception}));
-                    log.info("---------------------------------------------------");
+//                    var log = Logger.getLogger(StreamingProcessor.class);
+//                    log.info("---------------------------------------------------");
+//                    log.info(String.format("{0} | {1}", new Object[]{offsets, exception}));
+//                    log.info("---------------------------------------------------");
                 });
             }
         });
@@ -164,6 +170,7 @@ public class StreamingProcessor implements Serializable {
                 .set("spark.cassandra.auth.username", prop.getProperty("com.iot.app.cassandra.username"))
                 .set("spark.cassandra.auth.password", prop.getProperty("com.iot.app.cassandra.password"))
                 .set("spark.cassandra.connection.keep_alive_ms", prop.getProperty("com.iot.app.cassandra.keep_alive"))
+//                .set("spark.driver.bindAddress", "127.0.0.1")
                 ;
         //                .setJars(jars);
     }

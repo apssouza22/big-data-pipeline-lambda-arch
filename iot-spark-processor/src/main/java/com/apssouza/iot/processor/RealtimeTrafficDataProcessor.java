@@ -39,7 +39,7 @@ public class RealtimeTrafficDataProcessor {
      */
     public static void processWindowTrafficData(JavaDStream<IoTData> filteredIotDataStream) {
         // reduce by key and window (30 sec window and 10 sec slide).
-        var trafficDStream = filteredIotDataStream
+        JavaDStream<WindowTrafficData> trafficDStream = filteredIotDataStream
                 .mapToPair(iot -> new Tuple2<>(new AggregateKey(iot.getRouteId(), iot.getVehicleType()), 1L))
                 .reduceByKeyAndWindow((a, b) -> a + b, Durations.seconds(30), Durations.seconds(10))
                 .map(RealtimeTrafficDataProcessor::mapToWindowTrafficData);
@@ -54,12 +54,12 @@ public class RealtimeTrafficDataProcessor {
      */
     public static void processTotalTrafficData(JavaDStream<IoTData> filteredIotDataStream) {
         // Need to keep state for total count
-        var stateSpec = StateSpec
+        StateSpec<AggregateKey, Long, Long, Tuple2<AggregateKey, Long>> stateSpec = StateSpec
                 .function(RealtimeTrafficDataProcessor::updateState)
                 .timeout(Durations.seconds(3600));
 
         // We need to get count of vehicle group by routeId and vehicleType
-        var trafficDStream = filteredIotDataStream
+        JavaDStream<TotalTrafficData> trafficDStream = filteredIotDataStream
                 .mapToPair(iot -> new Tuple2<>(new AggregateKey(iot.getRouteId(), iot.getVehicleType()), 1L))
                 .reduceByKey((a, b) -> a + b)
                 .mapWithState(stateSpec)
@@ -71,7 +71,7 @@ public class RealtimeTrafficDataProcessor {
 
     private static void saveTotalTrafficData(final JavaDStream<TotalTrafficData> trafficDStream) {
         // Map Cassandra table column
-        var columnNameMappings = new HashMap<String, String>();
+        HashMap<String, String> columnNameMappings = new HashMap<>();
         columnNameMappings.put("routeId", "routeid");
         columnNameMappings.put("vehicleType", "vehicletype");
         columnNameMappings.put("totalCount", "totalcount");
@@ -89,7 +89,7 @@ public class RealtimeTrafficDataProcessor {
 
     private static void saveWindTrafficData(final JavaDStream<WindowTrafficData> trafficDStream) {
         // Map Cassandra table column
-        var columnNameMappings = new HashMap<String, String>();
+        HashMap<String, String> columnNameMappings = new HashMap<>();
         columnNameMappings.put("routeId", "routeid");
         columnNameMappings.put("vehicleType", "vehicletype");
         columnNameMappings.put("totalCount", "totalcount");
