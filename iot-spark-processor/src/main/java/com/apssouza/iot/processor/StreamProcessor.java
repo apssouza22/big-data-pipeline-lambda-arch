@@ -21,6 +21,7 @@ import org.apache.spark.streaming.kafka010.HasOffsetRanges;
 import org.apache.spark.streaming.kafka010.OffsetRange;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,7 +31,7 @@ import java.util.Map;
 import scala.Tuple2;
 import scala.Tuple3;
 
-public class StreamProcessor {
+public class StreamProcessor implements Serializable {
 
     final JavaDStream<ConsumerRecord<String, IoTData>> directKafkaStream;
     private JavaDStream<IoTData> transformedStream;
@@ -103,7 +104,7 @@ public class StreamProcessor {
     public StreamProcessor filterVehicle() {
         // Check vehicle Id is already processed
         StateSpec<String, IoTData, Boolean, Tuple2<IoTData, Boolean>> stateFunc = StateSpec
-                .function(this::updateState)
+                .function(StreamProcessor::updateState)
                 .timeout(Durations.seconds(3600));//maintain state for one hour
 
         //We need filtered stream for total and traffic data calculation
@@ -129,7 +130,7 @@ public class StreamProcessor {
      * @param state
      * @return
      */
-    private Tuple2<IoTData, Boolean> updateState(String str, Optional<IoTData> iot, State<Boolean> state) {
+    private static Tuple2<IoTData, Boolean> updateState(String str, Optional<IoTData> iot, State<Boolean> state) {
         Tuple2<IoTData, Boolean> vehicle = new Tuple2<>(iot.get(), false);
         if (state.exists()) {
             vehicle = new Tuple2<>(iot.get(), true);

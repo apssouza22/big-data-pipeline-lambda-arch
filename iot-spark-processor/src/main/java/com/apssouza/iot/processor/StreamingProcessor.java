@@ -7,12 +7,15 @@ import com.apssouza.iot.util.PropertyFileReader;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.broadcast.Broadcast;
+import org.apache.spark.sql.AnalysisException;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
@@ -64,19 +67,19 @@ public class StreamingProcessor implements Serializable {
         JavaStreamingContext streamingContext = new JavaStreamingContext(conf, Durations.seconds(5));
         streamingContext.checkpoint(prop.getProperty("com.iot.app.spark.checkpoint.dir"));
         SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
-        LatestOffSetReader latestOffSetReader = new LatestOffSetReader(sparkSession, parqueFile);
+        Map<TopicPartition, Long> offsets = getOffsets(parqueFile, sparkSession);
         JavaInputDStream<ConsumerRecord<String, IoTData>> kafkaStream = getKafkaStream(
                 prop,
                 streamingContext,
                 kafkaProperties,
-                latestOffSetReader.read().offsets()
+                offsets
         );
 
         logger.info("Starting Stream Processing");
 
         //broadcast variables. We will monitor vehicles on Route 37 which are of type Truck
         //Basically we are sending the data to each worker nodes on a Spark cluster.
-        Broadcast<Tuple3<POIData, String, String>>  broadcastPOIValues = streamingContext
+        Broadcast<Tuple3<POIData, String, String>> broadcastPOIValues = streamingContext
                 .sparkContext()
                 .broadcast(new Tuple3<>(getPointOfInterest(), "Route-37", "Truck"));
 
@@ -94,6 +97,15 @@ public class StreamingProcessor implements Serializable {
 
         streamingContext.start();
         streamingContext.awaitTermination();
+    }
+
+    private Map<TopicPartition, Long> getOffsets(final String parqueFile, final SparkSession sparkSession){
+        try {
+            LatestOffSetReader latestOffSetReader = new LatestOffSetReader(sparkSession, parqueFile);
+            return latestOffSetReader.read().offsets();
+        } catch (Exception e) {
+            return new HashMap<>();
+        }
     }
 
     private POIData getPointOfInterest() {
@@ -116,12 +128,7 @@ public class StreamingProcessor implements Serializable {
                 OffsetRange[] offsetRanges = ((HasOffsetRanges) trafficRdd.rdd()).offsetRanges();
 
                 CanCommitOffsets canCommitOffsets = (CanCommitOffsets) directKafkaStream.inputDStream();
-                canCommitOffsets.commitAsync(offsetRanges, (offsets, exception) -> {
-//                    var log = Logger.getLogger(StreamingProcessor.class);
-//                    log.info("---------------------------------------------------");
-//                    log.info(String.format("{0} | {1}", new Object[]{offsets, exception}));
-//                    log.info("---------------------------------------------------");
-                });
+                canCommitOffsets.commitAsync(offsetRanges, new TrafficOffsetCommitCallback());
             }
         });
     }
@@ -170,9 +177,21 @@ public class StreamingProcessor implements Serializable {
                 .set("spark.cassandra.auth.username", prop.getProperty("com.iot.app.cassandra.username"))
                 .set("spark.cassandra.auth.password", prop.getProperty("com.iot.app.cassandra.password"))
                 .set("spark.cassandra.connection.keep_alive_ms", prop.getProperty("com.iot.app.cassandra.keep_alive"))
-//                .set("spark.driver.bindAddress", "127.0.0.1")
+                //                .set("spark.driver.bindAddress", "127.0.0.1")
                 ;
         //                .setJars(jars);
     }
 
+}
+
+final class TrafficOffsetCommitCallback implements OffsetCommitCallback, Serializable {
+
+    private static final Logger log = Logger.getLogger(TrafficOffsetCommitCallback.class);
+
+    @Override
+    public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets, Exception exception) {
+        log.info("---------------------------------------------------");
+        log.info(String.format("{0} | {1}", new Object[]{offsets, exception}));
+        log.info("---------------------------------------------------");
+    }
 }

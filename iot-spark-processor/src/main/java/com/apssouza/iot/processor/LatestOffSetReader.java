@@ -52,9 +52,10 @@ public class LatestOffSetReader {
                 row.getString(row.fieldIndex("topic")),
                 row.getInt(row.fieldIndex("kafkaPartition"))
         );
+        Long offSet = Long.valueOf(row.getString(row.fieldIndex("untilOffset")));
         return new Tuple2<>(
                 topicPartition,
-                row.getLong(row.fieldIndex("untilOffset"))
+                offSet
         );
     }
 }
