@@ -8,10 +8,8 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import static com.datastax.spark.connector.japi.CassandraStreamingJavaUtil.javaFunctions;
 
 import org.apache.log4j.Logger;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.streaming.api.java.JavaDStream;
-import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.joda.time.Duration;
 
 import java.util.Date;
@@ -26,41 +24,27 @@ public class PointOfInterestProcessor {
     private static final Logger logger = Logger.getLogger(RealtimeTrafficDataProcessor.class);
 
     /**
-     * Method to get the vehicles which are in radius of POI and their distance from POI.
+     * Method to get and save vehicles that are in POI radius and their distance from POI.
      *
-     * @param nonFilteredIotDataStream original IoT data stream
+     * @param dataStream original IoT data stream
      * @param broadcastPOIValues       variable containing POI coordinates, route and vehicle types to monitor.
      */
     public static void processPOIData(
-            JavaDStream<IoTData> nonFilteredIotDataStream,
+            JavaDStream<IoTData> dataStream,
             Broadcast<Tuple3<POIData, String, String>> broadcastPOIValues
     ) {
 
-        // Filter by routeId,vehicleType and in POI range
-        JavaDStream<IoTData> iotDataStreamFiltered = nonFilteredIotDataStream
-                .filter(iot -> (
-                        iot.getRouteId().equals(broadcastPOIValues.value()._2())
-                                && iot.getVehicleType().contains(broadcastPOIValues.value()._3())
-                                &&
-                                GeoDistanceCalculator.isInPOIRadius(
-                                        Double.valueOf(iot.getLatitude()),
-                                        Double.valueOf(iot.getLongitude()),
-                                        broadcastPOIValues.value()._1().getLatitude(),
-                                        broadcastPOIValues.value()._1().getLongitude(),
-                                        broadcastPOIValues.value()._1().getRadius()
-                                )
-                ));
+        JavaDStream<POITrafficData> trafficDStream = dataStream
+                .filter(iot -> filterVehicleInPOI(iot, broadcastPOIValues))
+                .mapToPair(iot -> new Tuple2<>(iot, broadcastPOIValues.value()._1()))
+                .map(PointOfInterestProcessor::transformToPOITrafficData);
 
-        // pair with poi
-        JavaPairDStream<IoTData, POIData> poiDStreamPair = iotDataStreamFiltered.mapToPair(
-                iot -> new Tuple2<>(iot, broadcastPOIValues.value()._1())
-        );
+        saveToCassandra(trafficDStream);
+    }
 
-        // Transform to dstream of POITrafficData
-        JavaDStream<POITrafficData> trafficDStream = poiDStreamPair.map(poiTrafficDataFunc);
-
+    private static void saveToCassandra(final JavaDStream<POITrafficData> trafficDStream) {
         // Map Cassandra table column
-        Map<String, String> columnNameMappings = new HashMap<String, String>();
+        Map<String, String> columnNameMappings = new HashMap<>();
         columnNameMappings.put("vehicleId", "vehicleid");
         columnNameMappings.put("distance", "distance");
         columnNameMappings.put("vehicleType", "vehicletype");
@@ -77,9 +61,31 @@ public class PointOfInterestProcessor {
                 .saveToCassandra();
     }
 
+    /**
+     * Filter by routeId,vehicleType and in POI range
+     * @param iot
+     * @param broadcastPOIValues
+     * @return
+     */
+    private static boolean filterVehicleInPOI(IoTData iot, Broadcast<Tuple3<POIData, String, String>> broadcastPOIValues){
+        // Filter by routeId
+        if (!iot.getRouteId().equals(broadcastPOIValues.value()._2())) {
+            return false;
+        }
+        // Filter by vehicleType
+        if (!iot.getVehicleType().contains(broadcastPOIValues.value()._3())) {
+            return false;
+        }
+        return GeoDistanceCalculator.isInPOIRadius(
+                Double.valueOf(iot.getLatitude()),
+                Double.valueOf(iot.getLongitude()),
+                broadcastPOIValues.value()._1().getLatitude(),
+                broadcastPOIValues.value()._1().getLongitude(),
+                broadcastPOIValues.value()._1().getRadius()
+        );
+    }
 
-    //Function to create POITrafficData object from IoT data
-    private static final Function<Tuple2<IoTData, POIData>, POITrafficData> poiTrafficDataFunc = (tuple -> {
+    private static POITrafficData transformToPOITrafficData(Tuple2<IoTData, POIData> tuple) {
         POITrafficData poiTraffic = new POITrafficData();
         poiTraffic.setVehicleId(tuple._1.getVehicleId());
         poiTraffic.setVehicleType(tuple._1.getVehicleType());
@@ -91,8 +97,8 @@ public class PointOfInterestProcessor {
         );
         logger.debug("Distance for " + tuple._1.getLatitude() + "," + tuple._1.getLongitude() + "," +
                 tuple._2.getLatitude() + "," + tuple._2.getLongitude() + " = " + distance);
+
         poiTraffic.setDistance(distance);
         return poiTraffic;
-    });
-
+    }
 }

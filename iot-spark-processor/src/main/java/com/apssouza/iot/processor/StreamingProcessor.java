@@ -51,7 +51,7 @@ public class StreamingProcessor implements Serializable {
     }
 
     public static void main(String[] args) throws Exception {
-        String file = "iot-spark.properties";
+        String file = "iot-spark-local.properties";
         Properties prop = PropertyFileReader.readPropertyFile(file);
         StreamingProcessor streamingProcessor = new StreamingProcessor(prop);
         streamingProcessor.start();
@@ -99,7 +99,7 @@ public class StreamingProcessor implements Serializable {
         streamingContext.awaitTermination();
     }
 
-    private Map<TopicPartition, Long> getOffsets(final String parqueFile, final SparkSession sparkSession){
+    private Map<TopicPartition, Long> getOffsets(final String parqueFile, final SparkSession sparkSession) {
         try {
             LatestOffSetReader latestOffSetReader = new LatestOffSetReader(sparkSession, parqueFile);
             return latestOffSetReader.read().offsets();
@@ -177,9 +177,7 @@ public class StreamingProcessor implements Serializable {
                 .set("spark.cassandra.auth.username", prop.getProperty("com.iot.app.cassandra.username"))
                 .set("spark.cassandra.auth.password", prop.getProperty("com.iot.app.cassandra.password"))
                 .set("spark.cassandra.connection.keep_alive_ms", prop.getProperty("com.iot.app.cassandra.keep_alive"))
-                //                .set("spark.driver.bindAddress", "127.0.0.1")
                 ;
-        //                .setJars(jars);
     }
 
 }
