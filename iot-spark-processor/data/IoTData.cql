@@ -7,3 +7,4 @@ CREATE TABLE TrafficKeySpace.Window_Traffic (routeId text , vehicleType text,  t
 CREATE TABLE TrafficKeySpace.Poi_Traffic(vehicleid text , vehicletype text , distance bigint,  timeStamp timestamp,PRIMARY KEY (vehicleid));
 CREATE TABLE TrafficKeySpace.Heat_Map(latitude double , longitude double , totalcount bigint,  timeStamp timestamp,PRIMARY KEY (latitude, longitude));
 CREATE TABLE TrafficKeySpace.Heat_Map_Batch(latitude double , longitude double , totalcount bigint,  timeStamp timestamp,PRIMARY KEY (latitude, longitude));
+CREATE TABLE TrafficKeySpace.Poi_traffic_batch(vehicleid text , vehicletype text , distance bigint,  timeStamp timestamp,PRIMARY KEY (vehicleid));

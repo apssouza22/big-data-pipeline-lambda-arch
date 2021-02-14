@@ -15,6 +15,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.broadcast.Broadcast;
+
 import scala.Tuple2;
 import scala.Tuple3;
 
@@ -68,8 +69,7 @@ public class BatchTrafficDataProcessor {
 
 
     /**
-     * Method to get window traffic counts of different type of vehicles for each route.
-     * Window duration = 30 seconds and Slide interval = 10 seconds
+     * Method to get window traffic counts of different type of vehicles for each route. Window duration = 30 seconds and Slide interval = 10 seconds
      *
      * @param filteredIotDataStream IoT data stream
      */
@@ -148,14 +148,14 @@ public class BatchTrafficDataProcessor {
      */
     public void processPOIData(
             JavaRDD<IoTData> nonFilteredIotDataStream,
-            Broadcast<Tuple3<POIData, String, String>> broadcastPOIValues
+            Broadcast<POIData> broadcastPOIValues
     ) {
         // Filter by routeId,vehicleType and in POI range
         JavaRDD<IoTData> iotDataStreamFiltered = filterVehicleInPOIRange(nonFilteredIotDataStream, broadcastPOIValues);
 
         // pair with poi
         JavaPairRDD<IoTData, POIData> poiDStreamPair = iotDataStreamFiltered.mapToPair(
-                iot -> new Tuple2<>(iot, broadcastPOIValues.value()._1())
+                iot -> new Tuple2<>(iot, broadcastPOIValues.value())
         );
 
         // Transform to dstream of POITrafficData
@@ -178,22 +178,25 @@ public class BatchTrafficDataProcessor {
                         "poi_traffic_batch",
                         CassandraJavaUtil.mapToRow(POITrafficData.class, columnNameMappings)
                 )
-//                .withConstantTTL(120)//keeping data for 2 minutes
+                //                .withConstantTTL(120)//keeping data for 2 minutes
                 .saveToCassandra();
     }
 
     private JavaRDD<IoTData> filterVehicleInPOIRange(
             JavaRDD<IoTData> nonFilteredIotDataStream,
-            Broadcast<Tuple3<POIData, String, String>> broadcastPOIValues
+            Broadcast<POIData> broadcastPOIValues
     ) {
         return nonFilteredIotDataStream
                 .filter(iot -> (
-                        iot.getRouteId().equals(broadcastPOIValues.value()._2())
-                                && iot.getVehicleType().contains(broadcastPOIValues.value()._3())
-                                && GeoDistanceCalculator.isInPOIRadius(Double.valueOf(iot.getLatitude()),
-                                Double.valueOf(iot.getLongitude()), broadcastPOIValues.value()._1().getLatitude(),
-                                broadcastPOIValues.value()._1().getLongitude(),
-                                broadcastPOIValues.value()._1().getRadius())
+                        iot.getRouteId().equals(broadcastPOIValues.value().getRoute())
+                                && iot.getVehicleType().contains(broadcastPOIValues.value().getVehicle())
+                                && GeoDistanceCalculator.isInPOIRadius(
+                                Double.valueOf(iot.getLatitude()),
+                                Double.valueOf(iot.getLongitude()),
+                                broadcastPOIValues.value().getLatitude(),
+                                broadcastPOIValues.value().getLongitude(),
+                                broadcastPOIValues.value().getRadius()
+                        )
                 ));
     }
 

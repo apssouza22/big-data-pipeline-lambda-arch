@@ -1,34 +1,58 @@
 package com.apssouza.iot.processor;
 
+import com.apssouza.iot.dto.POIData;
 import com.apssouza.iot.util.PropertyFileReader;
 import com.apssouza.iot.dto.IoTData;
+import com.datastax.spark.connector.util.JavaApiHelper;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
 import java.util.Properties;
 
+import scala.Tuple3;
+import scala.reflect.ClassTag;
+
 public class BatchProcessor {
 
 
     public static void main(String[] args) throws Exception {
-        Properties prop = PropertyFileReader.readPropertyFile("iot-spark.properties");
-        String file = prop.getProperty("com.iot.app.hdfs") + "iot-data-parque";
+        var prop = PropertyFileReader.readPropertyFile("iot-spark-local.properties");
         String[] jars = {prop.getProperty("com.iot.app.jar")};
+        var file = prop.getProperty("com.iot.app.hdfs") + "iot-data-parque";
+        var conf = getSparkConfig(prop, jars);
+        var sparkSession = SparkSession.builder().config(conf).getOrCreate();
+        //broadcast variables. We will monitor vehicles on Route 37 which are of type Truck
+        //Basically we are sending the data to each worker nodes on a Spark cluster.
+        ClassTag<POIData> classTag = JavaApiHelper.getClassTag(POIData.class);
+        Broadcast<POIData> broadcastPOIValues = sparkSession
+                .sparkContext()
+                .broadcast(getPointOfInterest(), classTag);
 
-        SparkConf conf = getSparkConfig(prop, jars);
-        final SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
-        Dataset<Row> dataFrame = getDataFrame(sparkSession, file);
-        JavaRDD<IoTData> rdd = dataFrame.javaRDD().map(BatchProcessor::transformToIotData);
-        BatchHeatMapProcessor processor = new BatchHeatMapProcessor();
+        var dataFrame = getDataFrame(sparkSession, file);
+        var rdd = dataFrame.javaRDD().map(BatchProcessor::transformToIotData);
+        var processor = new BatchHeatMapProcessor();
         processor.processHeatMap(rdd);
+        var trafficDataProcessor = new BatchTrafficDataProcessor();
+        trafficDataProcessor.processPOIData(rdd, broadcastPOIValues);
         sparkSession.close();
         sparkSession.stop();
     }
 
+    private static POIData getPointOfInterest() {
+        //poi data
+        POIData poiData = new POIData();
+        poiData.setLatitude(33.877495);
+        poiData.setLongitude(-95.50238);
+        poiData.setRadius(30);//30 km
+        poiData.setRoute("Route-37");
+        poiData.setVehicle("Truck");
+        return poiData;
+    }
 
     private static  IoTData transformToIotData(Row row) {
         return new IoTData(
