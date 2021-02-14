@@ -6,8 +6,10 @@ import com.apssouza.iot.util.TimestampComparator;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.apssouza.iot.dto.Coordinate;
 import com.apssouza.iot.dto.IoTData;
+
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+
 import scala.Tuple2;
 
 import java.io.IOException;
@@ -26,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 public class BatchHeatMapProcessor {
 
     public void processHeatMap(JavaRDD<IoTData> dataFrame) throws IOException {
-        JavaRDD<Measurement> measurements = csvToMeasurements(dataFrame);
+        JavaRDD<Measurement> measurements = transformToMeasurements(dataFrame);
         JavaRDD<Measurement> roundedCoordinates = roundCoordinates(measurements);
         Date minTimestamp = measurements.min(new TimestampComparator()).getTimestamp();
         Date maxTimestamp = measurements.max(new TimestampComparator()).getTimestamp();
@@ -50,7 +52,7 @@ public class BatchHeatMapProcessor {
             JavaRDD<Measurement> roundedCoordinates,
             Date start,
             Date end
-    ) throws IOException {
+    ) {
         JavaRDD<Measurement> measurementsFilteredByTime = filterByTime(roundedCoordinates, start, end);
         JavaPairRDD<Coordinate, Integer> counts = countPerGridBox(measurementsFilteredByTime);
         JavaRDD<HeatMapData> countInArea = getCountInArea(counts, start);
@@ -72,13 +74,12 @@ public class BatchHeatMapProcessor {
     }
 
 
-    private JavaRDD<HeatMapData> getCountInArea(JavaPairRDD<Coordinate, Integer> tuples, Date day) throws IOException {
-        JavaRDD<HeatMapData> map = tuples.map(tuple -> {
-                    Coordinate coordinate = tuple._1();
-                    return new HeatMapData(coordinate.getLatitude(), coordinate.getLongitude(), tuple._2(), day);
-                }
-        );
-        return map;
+    private JavaRDD<HeatMapData> getCountInArea(JavaPairRDD<Coordinate, Integer> tuples, Date day) {
+        return tuples.map(tuple -> {
+            Coordinate coordinate = tuple._1();
+            Integer count = tuple._2();
+            return new HeatMapData(coordinate.getLatitude(), coordinate.getLongitude(), count, day);
+        });
     }
 
 
@@ -88,24 +89,20 @@ public class BatchHeatMapProcessor {
      * @param iotData | Spark SQL context
      * @return A set containing all data from the CSV file as Measurements
      */
-    private JavaRDD<Measurement> csvToMeasurements(JavaRDD<IoTData> iotData) {
-        JavaRDD<Measurement> map = iotData.map(row -> {
+    private JavaRDD<Measurement> transformToMeasurements(JavaRDD<IoTData> iotData) {
+        return iotData.map(row -> {
             Coordinate coordinate = new Coordinate(
                     Double.valueOf(row.getLatitude()),
                     Double.valueOf(row.getLongitude())
             );
             return new Measurement(coordinate, row.getTimestamp());
         });
-        return map;
     }
 
 
     /**
-     * Maps the measurements by rounding the coordinate.
-     * The world is defined by a grid of boxes, each box has a size of 0.0005 by 0.0005.
-     * Every mapping will be rounded to the center of the box it is part of.
-     * Boundary cases will be rounded up, so a coordinate on (-0.00025,0) will be rounded to (0,0),
-     * while the coordinate (0.00025,0) will be rounded to (0.0005,0).
+     * Maps the measurements by rounding the coordinate. The world is defined by a grid of boxes, each box has a size of 0.0005 by 0.0005. Every mapping will be rounded to the center of the box it is
+     * part of. Boundary cases will be rounded up, so a coordinate on (-0.00025,0) will be rounded to (0,0), while the coordinate (0.00025,0) will be rounded to (0.0005,0).
      *
      * @param measurements | The dataset of measurements
      * @return A set of measurements with rounded coordinates
@@ -130,10 +127,10 @@ public class BatchHeatMapProcessor {
      * @return A set of measurements in the given time period
      */
     private JavaRDD<Measurement> filterByTime(JavaRDD<Measurement> measurements, Date start, Date end) {
-        return measurements.filter(measurement -> (
-                        measurement.getTimestamp().equals(start) || measurement.getTimestamp().after(start)
-                ) && measurement.getTimestamp().before(end)
-        );
+        return measurements.filter(measurement -> {
+            return measurement.getTimestamp().after(start)
+                    && measurement.getTimestamp().before(end);
+        });
     }
 
     /**
