@@ -139,7 +139,7 @@ public class StreamProcessor implements Serializable {
         return vehicle;
     }
 
-    public StreamProcessor processPOIData(final Broadcast<Tuple3<POIData, String, String>> broadcastPOIValues) {
+    public StreamProcessor processPOIData(final Broadcast<POIData> broadcastPOIValues) {
         PointOfInterestProcessor.processPOIData(transformedStream, broadcastPOIValues);
         return this;
     }

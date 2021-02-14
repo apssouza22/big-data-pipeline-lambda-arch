@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import scala.Tuple2;
-import scala.Tuple3;
 
 public class PointOfInterestProcessor {
 
@@ -27,16 +26,16 @@ public class PointOfInterestProcessor {
      * Method to get and save vehicles that are in POI radius and their distance from POI.
      *
      * @param dataStream original IoT data stream
-     * @param broadcastPOIValues       variable containing POI coordinates, route and vehicle types to monitor.
+     * @param broadcastPOIValues variable containing POI coordinates, route and vehicle types to monitor.
      */
     public static void processPOIData(
             JavaDStream<IoTData> dataStream,
-            Broadcast<Tuple3<POIData, String, String>> broadcastPOIValues
+            Broadcast<POIData> broadcastPOIValues
     ) {
 
         JavaDStream<POITrafficData> trafficDStream = dataStream
                 .filter(iot -> filterVehicleInPOI(iot, broadcastPOIValues))
-                .mapToPair(iot -> new Tuple2<>(iot, broadcastPOIValues.value()._1()))
+                .mapToPair(iot -> new Tuple2<>(iot, broadcastPOIValues.value()))
                 .map(PointOfInterestProcessor::transformToPOITrafficData);
 
         saveToCassandra(trafficDStream);
@@ -67,21 +66,21 @@ public class PointOfInterestProcessor {
      * @param broadcastPOIValues
      * @return
      */
-    private static boolean filterVehicleInPOI(IoTData iot, Broadcast<Tuple3<POIData, String, String>> broadcastPOIValues){
+    private static boolean filterVehicleInPOI(IoTData iot, Broadcast<POIData> broadcastPOIValues){
         // Filter by routeId
-        if (!iot.getRouteId().equals(broadcastPOIValues.value()._2())) {
+        if (!iot.getRouteId().equals(broadcastPOIValues.value().getRoute())) {
             return false;
         }
         // Filter by vehicleType
-        if (!iot.getVehicleType().contains(broadcastPOIValues.value()._3())) {
+        if (!iot.getVehicleType().contains(broadcastPOIValues.value().getVehicle())) {
             return false;
         }
         return GeoDistanceCalculator.isInPOIRadius(
                 Double.valueOf(iot.getLatitude()),
                 Double.valueOf(iot.getLongitude()),
-                broadcastPOIValues.value()._1().getLatitude(),
-                broadcastPOIValues.value()._1().getLongitude(),
-                broadcastPOIValues.value()._1().getRadius()
+                broadcastPOIValues.value().getLatitude(),
+                broadcastPOIValues.value().getLongitude(),
+                broadcastPOIValues.value().getRadius()
         );
     }
 

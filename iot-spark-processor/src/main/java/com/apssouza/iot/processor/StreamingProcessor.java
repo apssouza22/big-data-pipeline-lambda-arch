@@ -4,6 +4,7 @@ import com.apssouza.iot.dto.IoTData;
 import com.apssouza.iot.dto.POIData;
 import com.apssouza.iot.util.IoTDataDeserializer;
 import com.apssouza.iot.util.PropertyFileReader;
+import com.datastax.spark.connector.util.JavaApiHelper;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import scala.Tuple3;
+import scala.reflect.ClassTag;
 
 /**
  * This class consumes Kafka IoT messages and creates stream for processing the IoT data.
@@ -79,9 +81,10 @@ public class StreamingProcessor implements Serializable {
 
         //broadcast variables. We will monitor vehicles on Route 37 which are of type Truck
         //Basically we are sending the data to each worker nodes on a Spark cluster.
-        Broadcast<Tuple3<POIData, String, String>> broadcastPOIValues = streamingContext
+        ClassTag<POIData> classTag = JavaApiHelper.getClassTag(POIData.class);
+        Broadcast<POIData> broadcastPOIValues = sparkSession
                 .sparkContext()
-                .broadcast(new Tuple3<>(getPointOfInterest(), "Route-37", "Truck"));
+                .broadcast(getPointOfInterest(), classTag);
 
         StreamProcessor streamProcessor = new StreamProcessor(kafkaStream);
         streamProcessor.transform()

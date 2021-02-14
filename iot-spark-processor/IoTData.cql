@@ -6,6 +6,8 @@ CREATE TABLE TrafficKeySpace.Total_Traffic (routeId text ,  vehicleType text,  t
 CREATE TABLE TrafficKeySpace.Window_Traffic (routeId text , vehicleType text,  totalCount bigint, timeStamp timestamp,recordDate text,PRIMARY KEY (routeId,recordDate,vehicleType));
 CREATE TABLE TrafficKeySpace.Poi_Traffic(vehicleid text , vehicletype text , distance bigint,  timeStamp timestamp,PRIMARY KEY (vehicleid));
 CREATE TABLE TrafficKeySpace.Poi_traffic_batch(vehicleid text , vehicletype text , distance bigint,  timeStamp timestamp,PRIMARY KEY (vehicleid));
+CREATE TABLE TrafficKeySpace.Total_Traffic_batch (routeId text ,  vehicleType text,  totalCount bigint, timeStamp timestamp,recordDate text,PRIMARY KEY (routeId,recordDate,vehicleType));
+CREATE TABLE TrafficKeySpace.Window_Traffic_batch (routeId text , vehicleType text,  totalCount bigint, timeStamp timestamp,recordDate text,PRIMARY KEY (routeId,recordDate,vehicleType));
 
 //Select from table
 SELECT * FROM TrafficKeySpace.Total_Traffic;

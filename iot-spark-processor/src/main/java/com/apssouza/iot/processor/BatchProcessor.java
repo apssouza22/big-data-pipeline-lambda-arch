@@ -1,12 +1,11 @@
 package com.apssouza.iot.processor;
 
+import com.apssouza.iot.dto.IoTData;
 import com.apssouza.iot.dto.POIData;
 import com.apssouza.iot.util.PropertyFileReader;
-import com.apssouza.iot.dto.IoTData;
 import com.datastax.spark.connector.util.JavaApiHelper;
 
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -14,9 +13,11 @@ import org.apache.spark.sql.SparkSession;
 
 import java.util.Properties;
 
-import scala.Tuple3;
 import scala.reflect.ClassTag;
 
+/**
+ * Class responsible to start the process from the parque file
+ */
 public class BatchProcessor {
 
 
@@ -28,17 +29,17 @@ public class BatchProcessor {
         var sparkSession = SparkSession.builder().config(conf).getOrCreate();
         //broadcast variables. We will monitor vehicles on Route 37 which are of type Truck
         //Basically we are sending the data to each worker nodes on a Spark cluster.
-        ClassTag<POIData> classTag = JavaApiHelper.getClassTag(POIData.class);
-        Broadcast<POIData> broadcastPOIValues = sparkSession
+        var classTag = JavaApiHelper.getClassTag(POIData.class);
+        var broadcastPOIValues = sparkSession
                 .sparkContext()
                 .broadcast(getPointOfInterest(), classTag);
 
         var dataFrame = getDataFrame(sparkSession, file);
         var rdd = dataFrame.javaRDD().map(BatchProcessor::transformToIotData);
-        var processor = new BatchHeatMapProcessor();
-        processor.processHeatMap(rdd);
-        var trafficDataProcessor = new BatchTrafficDataProcessor();
-        trafficDataProcessor.processPOIData(rdd, broadcastPOIValues);
+        BatchHeatMapProcessor.processHeatMap(rdd);
+        BatchTrafficDataProcessor.processPOIData(rdd, broadcastPOIValues);
+        BatchTrafficDataProcessor.processTotalTrafficData(rdd);
+        BatchTrafficDataProcessor.processWindowTrafficData(rdd);
         sparkSession.close();
         sparkSession.stop();
     }

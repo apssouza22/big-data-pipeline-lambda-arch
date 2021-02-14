@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class BatchHeatMapProcessor {
 
-    public void processHeatMap(JavaRDD<IoTData> dataFrame) throws IOException {
+    public static void processHeatMap(JavaRDD<IoTData> dataFrame) throws IOException {
         JavaRDD<Measurement> measurements = transformToMeasurements(dataFrame);
         JavaRDD<Measurement> roundedCoordinates = roundCoordinates(measurements);
         Date minTimestamp = measurements.min(new TimestampComparator()).getTimestamp();
@@ -48,7 +48,7 @@ public class BatchHeatMapProcessor {
         }
     }
 
-    private void processInterval(
+    private static void processInterval(
             JavaRDD<Measurement> roundedCoordinates,
             Date start,
             Date end
@@ -59,7 +59,7 @@ public class BatchHeatMapProcessor {
         save(countInArea);
     }
 
-    private void save(JavaRDD<HeatMapData> mapDataJavaRDD) {
+    private static void save(JavaRDD<HeatMapData> mapDataJavaRDD) {
         Map<String, String> columnNameMappings = new HashMap<>();
         columnNameMappings.put("latitude", "latitude");
         columnNameMappings.put("longitude", "longitude");
@@ -74,7 +74,7 @@ public class BatchHeatMapProcessor {
     }
 
 
-    private JavaRDD<HeatMapData> getCountInArea(JavaPairRDD<Coordinate, Integer> tuples, Date day) {
+    private static  JavaRDD<HeatMapData> getCountInArea(JavaPairRDD<Coordinate, Integer> tuples, Date day) {
         return tuples.map(tuple -> {
             Coordinate coordinate = tuple._1();
             Integer count = tuple._2();
@@ -89,7 +89,7 @@ public class BatchHeatMapProcessor {
      * @param iotData | Spark SQL context
      * @return A set containing all data from the CSV file as Measurements
      */
-    private JavaRDD<Measurement> transformToMeasurements(JavaRDD<IoTData> iotData) {
+    private static JavaRDD<Measurement> transformToMeasurements(JavaRDD<IoTData> iotData) {
         return iotData.map(row -> {
             Coordinate coordinate = new Coordinate(
                     Double.valueOf(row.getLatitude()),
@@ -107,7 +107,7 @@ public class BatchHeatMapProcessor {
      * @param measurements | The dataset of measurements
      * @return A set of measurements with rounded coordinates
      */
-    private JavaRDD<Measurement> roundCoordinates(JavaRDD<Measurement> measurements) {
+    private static JavaRDD<Measurement> roundCoordinates(JavaRDD<Measurement> measurements) {
         return measurements.map(measurement -> {
                     double roundedLatitude = (double) (5 * Math.round((measurement.getCoordinate().getLatitude() * 10000) / 5)) / 10000;
                     double roundedLongitude = (double) (5 * Math.round((measurement.getCoordinate().getLongitude() * 10000) / 5)) / 10000;
@@ -126,7 +126,7 @@ public class BatchHeatMapProcessor {
      * @param end          | End of the time period
      * @return A set of measurements in the given time period
      */
-    private JavaRDD<Measurement> filterByTime(JavaRDD<Measurement> measurements, Date start, Date end) {
+    private static  JavaRDD<Measurement> filterByTime(JavaRDD<Measurement> measurements, Date start, Date end) {
         return measurements.filter(measurement -> {
             return measurement.getTimestamp().after(start)
                     && measurement.getTimestamp().before(end);
@@ -139,7 +139,7 @@ public class BatchHeatMapProcessor {
      * @param measurements | The dataset of measurements
      * @return A set of tuples linking rounded coordinates to their number of occurrences
      */
-    private JavaPairRDD<Coordinate, Integer> countPerGridBox(JavaRDD<Measurement> measurements) {
+    private static  JavaPairRDD<Coordinate, Integer> countPerGridBox(JavaRDD<Measurement> measurements) {
         return measurements.mapToPair(
                 measurement -> new Tuple2<>(measurement.getRoundedCoordinate(), 1)
         ).reduceByKey((a, b) -> a + b);
