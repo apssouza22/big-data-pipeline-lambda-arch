@@ -4,6 +4,7 @@ import com.apssouza.iot.dto.IoTData;
 import com.apssouza.iot.dto.POIData;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.log4j.Logger;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.Function2;
@@ -16,6 +17,8 @@ import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.api.java.JavaDStream;
+import org.apache.spark.streaming.api.java.JavaMapWithStateDStream;
+import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.kafka010.HasOffsetRanges;
 import org.apache.spark.streaming.kafka010.OffsetRange;
 
@@ -28,9 +31,10 @@ import java.util.List;
 import java.util.Map;
 
 import scala.Tuple2;
-import scala.Tuple3;
 
 public class StreamProcessor implements Serializable {
+
+    private static final Logger logger = Logger.getLogger(StreamProcessor.class);
 
     final JavaDStream<ConsumerRecord<String, IoTData>> directKafkaStream;
     private JavaDStream<IoTData> transformedStream;
@@ -90,7 +94,7 @@ public class StreamProcessor implements Serializable {
                             "metaData.topic as topic",
                             "metaData.dayOfWeek as dayOfWeek"
                     );
-
+                    dfStore.printSchema();
                     dfStore.write()
                             .partitionBy("topic", "kafkaPartition", "dayOfWeek")
                             .mode(SaveMode.Append)
@@ -100,20 +104,64 @@ public class StreamProcessor implements Serializable {
         return this;
     }
 
+    public StreamProcessor processPOIData(final Broadcast<POIData> broadcastPOIValues) {
+        PointOfInterestProcessor.processPOIData(transformedStream, broadcastPOIValues);
+        return this;
+    }
+
+    public StreamProcessor processTotalTrafficData() {
+        RealtimeTrafficDataProcessor.processTotalTrafficData(filteredStream);
+        return this;
+    }
+
+    public StreamProcessor processWindowTrafficData() {
+        RealtimeTrafficDataProcessor.processWindowTrafficData(filteredStream);
+        return this;
+    }
+
+    public StreamProcessor processHeatMap() throws IOException {
+        RealTimeHeatMapProcessor.processHeatMap(filteredStream);
+        return this;
+    }
+
+
     public StreamProcessor filterVehicle() {
+        //We need filtered stream for total and traffic data calculation
+        var map = mapToPair(transformedStream);
+        var key = reduceByKey(map);
+        var state = mapWithState(key);
+        this.filteredStream = filterByState(state).map(tuple -> tuple._1);
+        return this;
+    }
+
+    private JavaDStream<Tuple2<IoTData, Boolean>> filterByState(final JavaMapWithStateDStream<String, IoTData, Boolean, Tuple2<IoTData, Boolean>> state) {
+        var dsStream = state .filter(tuple -> tuple._2.equals(Boolean.FALSE));
+        logger.info("Starting Stream Processing");
+        dsStream.print();
+        return dsStream;
+    }
+
+    private JavaMapWithStateDStream<String, IoTData, Boolean, Tuple2<IoTData, Boolean>> mapWithState(final JavaPairDStream<String, IoTData> key) {
         // Check vehicle Id is already processed
         StateSpec<String, IoTData, Boolean, Tuple2<IoTData, Boolean>> stateFunc = StateSpec
                 .function(StreamProcessor::updateState)
                 .timeout(Durations.seconds(3600));//maintain state for one hour
 
-        //We need filtered stream for total and traffic data calculation
-        this.filteredStream = transformedStream
-                .mapToPair(iot -> new Tuple2<>(iot.getVehicleId(), iot))
-                .reduceByKey((a, b) -> a)
-                .mapWithState(stateFunc)
-                .filter(tuple -> tuple._2.equals(Boolean.FALSE))
-                .map(tuple -> tuple._1);
-        return this;
+        var dStream = key.mapWithState(stateFunc);
+        dStream.print();
+        return dStream;
+    }
+
+    private JavaPairDStream<String, IoTData> reduceByKey(final JavaPairDStream<String, IoTData> map) {
+        JavaPairDStream<String, IoTData> dStream = map.reduceByKey((a, b) -> a);
+        dStream.print();
+        return dStream;
+    }
+
+    private JavaPairDStream<String, IoTData> mapToPair(final JavaDStream<IoTData> stream){
+        var dStream = stream.mapToPair(iot -> new Tuple2<>(iot.getVehicleId(), iot));
+        dStream.print();
+        return dStream;
     }
 
     public StreamProcessor cache() {
@@ -139,23 +187,4 @@ public class StreamProcessor implements Serializable {
         return vehicle;
     }
 
-    public StreamProcessor processPOIData(final Broadcast<POIData> broadcastPOIValues) {
-        PointOfInterestProcessor.processPOIData(transformedStream, broadcastPOIValues);
-        return this;
-    }
-
-    public StreamProcessor processTotalTrafficData() {
-        RealtimeTrafficDataProcessor.processTotalTrafficData(filteredStream);
-        return this;
-    }
-
-    public StreamProcessor processWindowTrafficData() {
-        RealtimeTrafficDataProcessor.processWindowTrafficData(filteredStream);
-        return this;
-    }
-
-    public StreamProcessor processHeatMap() throws IOException {
-        RealTimeHeatMapProcessor.processHeatMap(filteredStream);
-        return this;
-    }
 }

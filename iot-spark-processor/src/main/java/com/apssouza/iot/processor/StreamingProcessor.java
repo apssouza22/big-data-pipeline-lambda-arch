@@ -16,7 +16,6 @@ import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.broadcast.Broadcast;
-import org.apache.spark.sql.AnalysisException;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
@@ -35,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import scala.Tuple3;
 import scala.reflect.ClassTag;
 
 /**
@@ -64,6 +62,9 @@ public class StreamingProcessor implements Serializable {
         String parqueFile = prop.getProperty("com.iot.app.hdfs") + "iot-data-parque";
         Map<String, Object> kafkaProperties = getKafkaParams(prop);
         SparkConf conf = getSparkConf(prop, jars);
+
+        //TODO: remove when running in the cluster
+        conf.set("spark.driver.bindAddress", "127.0.0.1");
 
         //batch interval of 5 seconds for incoming stream
         JavaStreamingContext streamingContext = new JavaStreamingContext(conf, Durations.seconds(5));
