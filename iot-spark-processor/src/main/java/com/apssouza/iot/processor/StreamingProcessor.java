@@ -52,6 +52,7 @@ public class StreamingProcessor implements Serializable {
 
     public static void main(String[] args) throws Exception {
         String file = "iot-spark-local.properties";
+//        String file = "iot-spark.properties";
         Properties prop = PropertyFileReader.readPropertyFile(file);
         StreamingProcessor streamingProcessor = new StreamingProcessor(prop);
         streamingProcessor.start();
