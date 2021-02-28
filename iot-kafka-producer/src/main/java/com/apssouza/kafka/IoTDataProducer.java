@@ -50,15 +50,13 @@ public class IoTDataProducer {
         );
         Random rand = new Random();
         logger.info("Sending events");
-        // generate event in loop
+
         while (true) {
-            List<IoTData> eventList = generateVehicleWithPositions(routeList, vehicleTypeList, rand);
-            Collections.shuffle(eventList);// shuffle for random events
-            for (IoTData event : eventList) {
-                KeyedMessage<String, IoTData> data = new KeyedMessage<String, IoTData>(topic, event);
-                producer.send(data);
-                Thread.sleep(rand.nextInt(3000 - 1000) + 1000);//random delay of 1 to 3 seconds
+            List<IoTData> events = generateVehicleWithPositions(routeList, vehicleTypeList, rand);
+            for (IoTData event : events) {
+                producer.send(new KeyedMessage<>(topic, event));
             }
+            Thread.sleep(rand.nextInt(3000 - 1000) + 1000);//random delay of 1 to 3 seconds
         }
     }
 
@@ -68,21 +66,25 @@ public class IoTDataProducer {
             final Random rand
     ) {
         List<IoTData> eventList = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {// create 100 vehicles
-            String vehicleId = UUID.randomUUID().toString();
-            String vehicleType = vehicleTypeList.get(rand.nextInt(5));
-            String routeId = routeList.get(rand.nextInt(3));
-            Date timestamp = new Date();
-            double speed = rand.nextInt(100 - 20) + 20;// random speed between 20 to 100
-            double fuelLevel = rand.nextInt(40 - 10) + 10;
-            for (int j = 0; j < 5; j++) {// Add 5 events for each vehicle
-                String coords = getCoordinates(routeId);
-                String latitude = coords.substring(0, coords.indexOf(","));
-                String longitude = coords.substring(coords.indexOf(",") + 1, coords.length());
-                IoTData event =
-                        new IoTData(vehicleId, vehicleType, routeId, latitude, longitude, timestamp, speed, fuelLevel);
-                eventList.add(event);
-            }
+        String vehicleId = UUID.randomUUID().toString();
+        String vehicleType = vehicleTypeList.get(rand.nextInt(5));
+        String routeId = routeList.get(rand.nextInt(3));
+        Date timestamp = new Date();
+        double speed = rand.nextInt(100 - 20) + 20;// random speed between 20 to 100
+        double fuelLevel = rand.nextInt(40 - 10) + 10;
+        for (int j = 0; j < 5; j++) {// Add 5 events for each vehicle (Moving)
+            String coords = getCoordinates(routeId);
+            IoTData event = new IoTData(
+                    vehicleId,
+                    vehicleType,
+                    routeId,
+                    coords.substring(0, coords.indexOf(",")),
+                    coords.substring(coords.indexOf(",") + 1),
+                    timestamp,
+                    speed,
+                    fuelLevel
+            );
+            eventList.add(event);
         }
         return eventList;
     }
@@ -90,22 +92,19 @@ public class IoTDataProducer {
     //Method to generate random latitude and longitude for routes
     private String getCoordinates(String routeId) {
         Random rand = new Random();
-        int latPrefix = 0;
-        int longPrefix = -0;
+        int latPrefix = 53;
+        int longPrefix = -6;
         if (routeId.equals("Route-37")) {
-            latPrefix = 33;
-            longPrefix = -96;
+            longPrefix = -6;
         }
         if (routeId.equals("Route-82")) {
-            latPrefix = 34;
-            longPrefix = -97;
+            longPrefix = -7;
         }
         if (routeId.equals("Route-43")) {
-            latPrefix = 35;
-            longPrefix = -98;
+            longPrefix = -8;
         }
-        Float lati = latPrefix + rand.nextFloat();
-        Float longi = longPrefix + rand.nextFloat();
-        return lati + "," + longi;
+        Float latitude = latPrefix + rand.nextFloat();
+        Float longitude = longPrefix + rand.nextFloat();
+        return latitude + "," + longitude;
     }
 }

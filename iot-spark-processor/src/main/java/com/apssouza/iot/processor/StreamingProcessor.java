@@ -114,11 +114,10 @@ public class StreamingProcessor implements Serializable {
     }
 
     private POIData getPointOfInterest() {
-        //poi data
         POIData poiData = new POIData();
-        poiData.setLatitude(33.877495);
-        poiData.setLongitude(-95.50238);
-        poiData.setRadius(30);//30 km
+        poiData.setLatitude(53.877495);
+        poiData.setLongitude(-6.50238);
+        poiData.setRadius(100);//100 km
         return poiData;
     }
 
@@ -181,8 +180,7 @@ public class StreamingProcessor implements Serializable {
                 .set("spark.cassandra.connection.port", prop.getProperty("com.iot.app.cassandra.port"))
                 .set("spark.cassandra.auth.username", prop.getProperty("com.iot.app.cassandra.username"))
                 .set("spark.cassandra.auth.password", prop.getProperty("com.iot.app.cassandra.password"))
-                .set("spark.cassandra.connection.keep_alive_ms", prop.getProperty("com.iot.app.cassandra.keep_alive"))
-                ;
+                .set("spark.cassandra.connection.keep_alive_ms", prop.getProperty("com.iot.app.cassandra.keep_alive"));
     }
 
 }
