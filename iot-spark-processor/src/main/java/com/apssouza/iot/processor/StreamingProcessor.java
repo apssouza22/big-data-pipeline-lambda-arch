@@ -51,8 +51,8 @@ public class StreamingProcessor implements Serializable {
     }
 
     public static void main(String[] args) throws Exception {
-        String file = "iot-spark-local.properties";
-//        String file = "iot-spark.properties";
+//        String file = "iot-spark-local.properties";
+        String file = "iot-spark.properties";
         Properties prop = PropertyFileReader.readPropertyFile(file);
         StreamingProcessor streamingProcessor = new StreamingProcessor(prop);
         streamingProcessor.start();
@@ -65,7 +65,7 @@ public class StreamingProcessor implements Serializable {
         SparkConf conf = getSparkConf(prop, jars);
 
         //TODO: remove when running in the cluster
-        conf.set("spark.driver.bindAddress", "127.0.0.1");
+//        conf.set("spark.driver.bindAddress", "127.0.0.1");
 
         //batch interval of 5 seconds for incoming stream
         JavaStreamingContext streamingContext = new JavaStreamingContext(conf, Durations.seconds(5));

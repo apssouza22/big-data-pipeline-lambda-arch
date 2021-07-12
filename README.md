@@ -21,12 +21,12 @@ All component parts are dynamically managed using Docker, which means you don't 
 about setting up your local environment, the only thing you need is to have Docker installed.
 
 System stack:
-- Java 8
+- Java 11
 - Maven
 - ZooKeeper
 - Kafka
 - Cassandra
-- Spark
+- Spark 3
 - Docker
 - HDFS
 
@@ -34,7 +34,6 @@ System stack:
 The streaming part of the project was done from iot-traffic-project [InfoQ](https://www.infoq.com/articles/traffic-data-monitoring-iot-kafka-and-spark-streaming)
 
 ## How to use
-*  Set the KAFKA_ADVERTISED_LISTENERS with your IP in the docker-compose.yml
 * `mvn package`
 * `docker-compose -p lambda up`
 *  Wait all services be up and running, then...
