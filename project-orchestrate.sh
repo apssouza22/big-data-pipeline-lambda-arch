@@ -2,7 +2,7 @@
 
 ########################################################################
 # title:          Build Complete Project
-# author:         Alexsandro souza (https://apssouza.com.br)
+# author:         Alexsandro souza (https://dev.to/apssouza22)
 # url:            https://github.com/apssouza22
 # description:    Build complete Big data pipeline
 # usage:          sh ./project-orchestrate.sh
@@ -17,7 +17,7 @@ docker exec cassandra-iot cqlsh --username cassandra --password cassandra  -f /s
 docker exec kafka-iot kafka-topics --create --topic iot-data-event --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181
 
 # Create our folders on Hadoop file system and total permission to those
-docker exec namenode hdfs dfs -rm /lambda-arch
+docker exec namenode hdfs dfs -rm -r /lambda-arch
 docker exec namenode hdfs dfs -mkdir /lambda-arch
 docker exec namenode hdfs dfs -mkdir /lambda-arch/checkpoint
 docker exec namenode hdfs dfs -chmod -R 777 /lambda-arch

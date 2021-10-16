@@ -34,6 +34,8 @@ services:
         KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
         KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.request.logger=WARN"
+        KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
       hostname: kafka
@@ -55,7 +57,7 @@ services:
       - "HEAP_NEWSIZE=128M"
     container_name: cassandra-iot
     volumes:
-      - ./iot-spark-processor/data/IoTData.cql:/schema.cql
+      - ./data/IoTschema.cql:/schema.cql
 
   spark-master:
     image: bde2020/spark-master:3.0.0-hadoop3.2-java11
