@@ -33,6 +33,8 @@ System stack:
 
 The streaming part of the project was done from iot-traffic-project [InfoQ](https://www.infoq.com/articles/traffic-data-monitoring-iot-kafka-and-spark-streaming)
 
+<a href="https://www.buymeacoffee.com/apssouza"><img src="https://miro.medium.com/max/654/1*rQv8JgstmK0juxP-Kb4IGg.jpeg"></a>
+
 ## How to use
 * `mvn package`
 * `docker-compose -p lambda up`
