@@ -44,7 +44,7 @@ The streaming part of the project was done from iot-traffic-project [InfoQ](http
 * Run the traffic producer `java -jar iot-kafka-producer/target/iot-kafka-producer-1.0.0.jar`
 * Run the service layer (Web app) `java -jar iot-springboot-dashboard/target/iot-springboot-dashboard-1.0.0.jar` 
 * Access the dashboard with the data http://localhost:3000/
-* Run batch job `docker exec spark-master /spark/bin/spark-submit --class BatchProcessor  --master spark://localhost:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar`
+* Run batch job `docker exec spark-master /spark/bin/spark-submit --class com.apssouza.iot.processor.BatchProcessor  --master spark://localhost:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar`
 
 ### Miscellaneous
 
@@ -90,7 +90,7 @@ http://localhost:50075
 
 
 ### Cassandra
-- Log in `cqlsh --username cassandra --password cassandra`
+- Log in `docker exec -it cassandra-iot cqlsh --username cassandra --password cassandra`
 - Access the keyspace `use TrafficKeySpace;`
 - List data `SELECT * FROM TrafficKeySpace.Total_Traffic;`
 

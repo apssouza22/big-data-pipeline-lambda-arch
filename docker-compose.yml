@@ -57,7 +57,7 @@ services:
       - "HEAP_NEWSIZE=128M"
     container_name: cassandra-iot
     volumes:
-      - ./data/IoTschema.cql:/schema.cql
+      - ./data/schema.cql:/schema.cql
 
   spark-master:
     image: bde2020/spark-master:3.0.0-hadoop3.2-java11
