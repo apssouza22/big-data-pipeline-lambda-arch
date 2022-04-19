@@ -45,8 +45,8 @@ public class TrafficDataService {
 
     private static DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-    //Method sends traffic data message in every 5 seconds.
-    @Scheduled(fixedRate = 5000)
+    //Method sends traffic data message in every 15 seconds.
+    @Scheduled(fixedRate = 15000)
     public void trigger() {
         List<TotalTrafficData> totalTrafficList = new ArrayList<>();
         List<WindowTrafficData> windowTrafficList = new ArrayList<>();

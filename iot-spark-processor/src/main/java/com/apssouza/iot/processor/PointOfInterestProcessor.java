@@ -56,25 +56,17 @@ public class PointOfInterestProcessor {
                         "poi_traffic",
                         CassandraJavaUtil.mapToRow(POITrafficData.class, columnNameMappings)
                 )
-                .withConstantTTL(Duration.standardSeconds(2))//keeping data for 2 minutes
+                .withConstantTTL(Duration.standardSeconds(30))//keeping data for 30 seconds
                 .saveToCassandra();
     }
 
     /**
-     * Filter by routeId,vehicleType and in POI range
+     * Filter vehicles in the point of interest range
      * @param iot
      * @param broadcastPOIValues
      * @return
      */
     private static boolean filterVehicleInPOI(IoTData iot, Broadcast<POIData> broadcastPOIValues){
-        // Filter by routeId
-        if (!iot.getRouteId().equals(broadcastPOIValues.value().getRoute())) {
-            return false;
-        }
-        // Filter by vehicleType
-        if (!iot.getVehicleType().contains(broadcastPOIValues.value().getVehicle())) {
-            return false;
-        }
         return GeoDistanceCalculator.isInPOIRadius(
                 Double.valueOf(iot.getLatitude()),
                 Double.valueOf(iot.getLongitude()),

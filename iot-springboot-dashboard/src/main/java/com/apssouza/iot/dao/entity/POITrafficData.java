@@ -12,8 +12,7 @@ import java.util.Date;
 
 /**
  * Entity class for poi_traffic db table
- * 
- * @author abaghel
+ *
  *
  */
 @Table("poi_traffic")
