@@ -6,14 +6,11 @@ import com.apssouza.iot.util.PropertyFileReader;
 import com.datastax.spark.connector.util.JavaApiHelper;
 
 import org.apache.spark.SparkConf;
-import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
 import java.util.Properties;
-
-import scala.reflect.ClassTag;
 
 /**
  * Class responsible to start the process from the parque file
@@ -22,10 +19,14 @@ public class BatchProcessor {
 
 
     public static void main(String[] args) throws Exception {
-        var prop = PropertyFileReader.readPropertyFile("iot-spark-local.properties");
-        String[] jars = {prop.getProperty("com.iot.app.jar")};
+        //        String file = "iot-spark-local.properties";
+        String fileProp = "iot-spark.properties";
+        Properties prop = PropertyFileReader.readPropertyFile(fileProp);
+
         var file = prop.getProperty("com.iot.app.hdfs") + "iot-data-parque";
-        var conf = getSparkConfig(prop, jars);
+        String[] jars = {prop.getProperty("com.iot.app.jar")};
+        var conf = ProcessorUtils.getSparkConf(prop);
+        conf.setJars(jars);
         var sparkSession = SparkSession.builder().config(conf).getOrCreate();
         //broadcast variables. We will monitor vehicles on Route 37 which are of type Truck
         //Basically we are sending the data to each worker nodes on a Spark cluster.

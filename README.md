@@ -49,14 +49,11 @@ The streaming part of the project was done from iot-traffic-project [InfoQ](http
 ### Miscellaneous
 
 #### Spark
-spark-submit --class StreamingProcessor --packages org.apache.kafka:kafka-clients:0.10.2.2 --master spark://spark-master:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar
-Add spark-master to /etc/hosts pointing to localhost
-/spark/bin/spark-submit 
 
 #### Submit a job to master
-- mvn package
+- `mvn package`
 - `spark-submit --class com.apssouza.iot.processor.StreamingProcessor --master spark://spark-master:7077 iot-spark-processor/target/iot-spark-processor-1.0.0.jar`
-
+Add `spark-master` to /etc/hosts pointing to localhost
 
 #### GUI
 http://localhost:8080 Master
@@ -94,5 +91,5 @@ http://localhost:50075
 - Access the keyspace `use TrafficKeySpace;`
 - List data `SELECT * FROM TrafficKeySpace.Total_Traffic;`
 
-## That's all. Leave a star if this project has helped you!
+## Please consider leaving a star if this project has helped you. 
 
