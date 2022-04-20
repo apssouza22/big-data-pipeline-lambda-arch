@@ -96,7 +96,7 @@ services:
 
 
   namenode:
-    image: bde2020/hadoop-namenode:1.1.0-hadoop2.8-java8
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.1.3-java8
     container_name: namenode
     hostname: namenode
     volumes:
@@ -110,11 +110,11 @@ services:
     networks:
     - net
     ports:
-    - 50070:50070
+    - 9870:9870
     - 8020:8020
 
   datanode:
-    image: bde2020/hadoop-datanode:1.1.0-hadoop2.8-java8
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.1.3-java8
     container_name: datanode
     hostname: datanode
     volumes:

@@ -70,8 +70,8 @@ public class IoTDataProducer {
         String vehicleType = vehicleTypeList.get(rand.nextInt(5));
         String routeId = routeList.get(rand.nextInt(3));
         Date timestamp = new Date();
-        double speed = rand.nextInt(100 - 20) + 20;// random speed between 20 to 100
-        double fuelLevel = rand.nextInt(40 - 10) + 10;
+        double speed = rand.nextInt(80) + 20;// random speed between 20 to 100
+        double fuelLevel = rand.nextInt(30) + 10;
         for (int j = 0; j < 5; j++) {// Add 5 events for each vehicle (Moving)
             String coords = getCoordinates(routeId);
             IoTData event = new IoTData(
@@ -89,7 +89,12 @@ public class IoTDataProducer {
         return eventList;
     }
 
-    //Method to generate random latitude and longitude for routes
+
+    /**
+     * Method to generate random latitude and longitude for routes
+     * @param routeId
+     * @return
+     */
     private String getCoordinates(String routeId) {
         Random rand = new Random();
         int latPrefix = 53;
