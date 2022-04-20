@@ -35,7 +35,7 @@
 	</div>
 	<br>
 	<div class="row">
-		<div class="col-md-4">
+		<div class="col-md-3">
 			<table class="table outerTable">
 				<thead>
 					<tr>
@@ -61,7 +61,7 @@
 								<table class="table table-bordered table-condensed table-hover innerTable">
 									<tr>
 										<thead>
-											<th>Route</th><th>Vehicle</th><th>Count</th><th>Time</th>
+											<th>Route</th><th>Vehicle</th><th>Count</th>
 										</thead>
 									</tr>
 								</table>
@@ -71,7 +71,7 @@
 			    </tbody>
 			</table>
 		</div>
-		<div class="col-md-4">
+		<div class="col-md-3">
 			<table class="table outerTable">
 				<thead>
 					<tr>
@@ -97,7 +97,7 @@
 								<table class="table table-bordered table-condensed table-hover innerTable">
 									<tr>
 										<thead>
-											<th>Route</th><th>Vehicle</th><th>Count</th><th>Time</th>
+											<th>Route</th><th>Vehicle</th><th>Count</th>
 										</thead>
 									</tr>
 								</table>
@@ -107,7 +107,7 @@
 			    </tbody>
 			</table>		
 		</div>
-		<div class="col-md-4">
+		<div class="col-md-3">
 			<table class="table outerTable">
 				<thead>
 					<tr>
@@ -123,7 +123,7 @@
 			<table class="table outerTable">
 				<thead>
 					<tr>
-						<th>Vehicles At a POI in the past 30 seconds</th>
+						<th>Vehicles At a POI (last 2 minutes)</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -133,7 +133,7 @@
 								<table class="table table-bordered table-condensed table-hover innerTable">
 									<tr>
 										<thead>
-											<th>Vehicle Id</th><th>Vehicle</th><th>Distance</th><th>Time</th>
+											<th>Vehicle</th><th>Distance</th>
 										</thead>
 									</tr>
 								</table>
@@ -143,42 +143,39 @@
 			    </tbody>
 			</table>
 		</div>
-	</div>
+		<div class="col-md-3">
+			<table class="table outerTable">
+				<thead>
+				<tr>
+					<th>Qtd of Vehicles per Area (last 2 minutes)</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<td>
+						<div id="gridBoxContent">
+							<table class="table table-bordered table-condensed table-hover innerTable">
+								<thead>
+								<tr>
+									<th>Grid box center</th>
+									<th>Quantity</th>
+								</tr>
+								</thead>
+								<tbody>
 
-		<div class="row">
-			<div class="col-md-6">
-				<table class="table outerTable">
-					<thead>
-					<tr>
-						<th>Area with more vehicles (grid 0.0005 by 0.0005)</th>
-					</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>
-								<div id="gridBoxContent">
-									<table class="table table-bordered table-condensed table-hover innerTable">
-										<thead>
-										<tr>
-											<th>Grid box center</th>
-											<th>Quantity</th>
-										</tr>
-										</thead>
-										<tbody>
-
-										</tbody>
-									</table>
-								</div>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
+								</tbody>
+							</table>
+						</div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
 		</div>
-		<br>
-		<br>
-		<br>
-		<br>
+	</div>
+	<br>
+	<br>
+	<br>
+	<br>
 </div>
 
 	<script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>

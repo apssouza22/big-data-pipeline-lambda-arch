@@ -2,7 +2,6 @@ package com.apssouza.kafka;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -56,7 +55,7 @@ public class IoTDataProducer {
             for (IoTData event : events) {
                 producer.send(new KeyedMessage<>(topic, event));
             }
-            Thread.sleep(rand.nextInt(3000 - 1000) + 1000);//random delay of 1 to 3 seconds
+            Thread.sleep(rand.nextInt(5000 - 2000) + 2000);//random delay of 2 to 5 seconds
         }
     }
 
@@ -72,14 +71,16 @@ public class IoTDataProducer {
         Date timestamp = new Date();
         double speed = rand.nextInt(80) + 20;// random speed between 20 to 100
         double fuelLevel = rand.nextInt(30) + 10;
-        for (int j = 0; j < 5; j++) {// Add 5 events for each vehicle (Moving)
-            String coords = getCoordinates(routeId);
+        float []coords = getCoordinates();
+        for (int i = 0; i < 5; i++) {// Add 5 events for each vehicle (Moving)
+            coords[0] = coords[0] + (float)0.0001;
+            coords[1] = coords[1] + (float)0.0001;
             IoTData event = new IoTData(
                     vehicleId,
                     vehicleType,
                     routeId,
-                    coords.substring(0, coords.indexOf(",")),
-                    coords.substring(coords.indexOf(",") + 1),
+                    String.format("%s", coords[0]),
+                    String.format("%s", coords[1]),
                     timestamp,
                     speed,
                     fuelLevel
@@ -92,24 +93,15 @@ public class IoTDataProducer {
 
     /**
      * Method to generate random latitude and longitude for routes
-     * @param routeId
      * @return
      */
-    private String getCoordinates(String routeId) {
+    private float[] getCoordinates() {
         Random rand = new Random();
-        int latPrefix = 53;
-        int longPrefix = -6;
-        if (routeId.equals("Route-37")) {
-            longPrefix = -6;
-        }
-        if (routeId.equals("Route-82")) {
-            longPrefix = -7;
-        }
-        if (routeId.equals("Route-43")) {
-            longPrefix = -8;
-        }
-        Float latitude = latPrefix + rand.nextFloat();
-        Float longitude = longPrefix + rand.nextFloat();
-        return latitude + "," + longitude;
+        int latPrefix = rand.nextInt(3) + 52;
+        int longPrefix = rand.nextInt(3) + 7;
+        float latitude = latPrefix + rand.nextFloat();
+        float longitude = longPrefix + rand.nextFloat();
+        longitude = longitude * -1;
+        return new float[]{latitude, longitude};
     }
 }

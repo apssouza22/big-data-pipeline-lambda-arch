@@ -32,7 +32,7 @@ public class RealTimeHeatMapProcessor {
                 .map(RealTimeHeatMapProcessor::mapToMeasurement)
                 .map(RealTimeHeatMapProcessor::roundCoordinates)
                 .mapToPair(measurement -> new Tuple2<>(measurement.getRoundedCoordinate(), 1))
-                .reduceByKeyAndWindow((a, b) -> a + b, Durations.seconds(30), Durations.seconds(10))
+                .reduceByKeyAndWindow((a, b) -> a + b, Durations.seconds(120), Durations.seconds(10))
                 .map(RealTimeHeatMapProcessor::mapHeatMap);
 
         save(heatMapStream);

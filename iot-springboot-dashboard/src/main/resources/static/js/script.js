@@ -87,27 +87,27 @@ jQuery(document).ready(function() {
             //Total traffic
             var totalOutput='';
             jQuery.each(resp.totalTraffic, function(i,vh) {
-                 totalOutput +="<tbody><tr><td>"+ vh.routeId+"</td><td>"+vh.vehicleType+"</td><td>"+vh.totalCount+"</td><td>"+vh.timeStamp+"</td></tr></tbody>";
+                 totalOutput +="<tbody><tr><td>"+ vh.routeId+"</td><td>"+vh.vehicleType+"</td><td>"+vh.totalCount+"</td></tr></tbody>";
             });
-            var t_tabl_start = "<table class='table table-bordered table-condensed table-hover innerTable'><thead><tr><th>Route</th><th>Vehicle</th><th>Count</th><th>Time</th></tr></thead>";
+            var t_tabl_start = "<table class='table table-bordered table-condensed table-hover innerTable'><thead><tr><th>Route</th><th>Vehicle</th><th>Count</th></tr></thead>";
             var t_tabl_end = "</table>";
             totalTrafficList.html(t_tabl_start+totalOutput+t_tabl_end);
 
             //Window traffic
             var windowOutput='';
             jQuery.each(resp.windowTraffic, function(i,vh) {
-                 windowOutput +="<tbody><tr><td>"+ vh.routeId+"</td><td>"+vh.vehicleType+"</td><td>"+vh.totalCount+"</td><td>"+vh.timeStamp+"</td></tr></tbody>";
+                 windowOutput +="<tbody><tr><td>"+ vh.routeId+"</td><td>"+vh.vehicleType+"</td><td>"+vh.totalCount+"</td></tr></tbody>";
             });
-            var w_tabl_start = "<table class='table table-bordered table-condensed table-hover innerTable'><thead><tr><th>Route</th><th>Vehicle</th><th>Count</th><th>Time</th></tr></thead>";
+            var w_tabl_start = "<table class='table table-bordered table-condensed table-hover innerTable'><thead><tr><th>Route</th><th>Vehicle</th><th>Count</th></tr></thead>";
             var w_tabl_end = "</table>";
             windowTrafficList.html(w_tabl_start+windowOutput+w_tabl_end);
 
             //POI data
             var poiOutput='';
             jQuery.each(resp.poiTraffic, function(i,vh) {
-                 poiOutput +="<tbody><tr><td>"+ vh.vehicleId+"</td><td>"+vh.vehicleType+"</td><td>"+vh.distance+"</td><td>"+vh.timeStamp+"</td></tr></tbody>";
+                 poiOutput +="<tbody><tr><td>"+vh.vehicleType+"</td><td>"+vh.distance+"</td></tr></tbody>";
             });
-            var p_tabl_start = "<table class='table table-bordered table-condensed table-hover innerTable'><thead><tr><th>Vehicle Id</th><th>Vehicle</th><th>Distance</th><th>Time</th></tr></thead>";
+            var p_tabl_start = "<table class='table table-bordered table-condensed table-hover innerTable'><thead><tr><th>Vehicle</th><th>Distance</th></tr></thead>";
             var p_tabl_end = "</table>";
             poiTrafficList.html(p_tabl_start+poiOutput+p_tabl_end);
 

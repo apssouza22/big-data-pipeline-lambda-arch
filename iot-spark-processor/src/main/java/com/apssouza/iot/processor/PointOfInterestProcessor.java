@@ -56,7 +56,7 @@ public class PointOfInterestProcessor {
                         "poi_traffic",
                         CassandraJavaUtil.mapToRow(POITrafficData.class, columnNameMappings)
                 )
-                .withConstantTTL(Duration.standardSeconds(30))//keeping data for 30 seconds
+                .withConstantTTL(Duration.standardSeconds(120))//keeping data for 30 seconds
                 .saveToCassandra();
     }
 
