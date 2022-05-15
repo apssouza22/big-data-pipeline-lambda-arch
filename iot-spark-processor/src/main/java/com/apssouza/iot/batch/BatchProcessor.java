@@ -23,10 +23,11 @@ public class BatchProcessor {
         //        String file = "iot-spark-local.properties";
         String fileProp = "iot-spark.properties";
         Properties prop = PropertyFileReader.readPropertyFile(fileProp);
+        prop.setProperty("com.iot.app.spark.app.name", "Iot Batch Processor");
 
         var file = prop.getProperty("com.iot.app.hdfs") + "iot-data-parque";
         String[] jars = {prop.getProperty("com.iot.app.jar")};
-        var conf = ProcessorUtils.getSparkConf(prop);
+        var conf = ProcessorUtils.getSparkConf(prop, "batch-processor");
         conf.setJars(jars);
         var sparkSession = SparkSession.builder().config(conf).getOrCreate();
         //broadcast variables. We will monitor vehicles on Route 37 which are of type Truck

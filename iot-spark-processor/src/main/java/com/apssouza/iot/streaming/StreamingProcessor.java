@@ -63,10 +63,16 @@ public class StreamingProcessor implements Serializable {
     private void start() throws Exception {
         String parqueFile = prop.getProperty("com.iot.app.hdfs") + "iot-data-parque";
         Map<String, Object> kafkaProperties = getKafkaParams(prop);
-        SparkConf conf = ProcessorUtils.getSparkConf(prop);
+        SparkConf conf = ProcessorUtils.getSparkConf(prop, "streaming-processor");
 
         //batch interval of 5 seconds for incoming stream
         JavaStreamingContext streamingContext = new JavaStreamingContext(conf, Durations.seconds(5));
+
+        //Please note that while data checkpointing is useful for stateful processing, it comes with a latency cost.
+        // Hence, it's necessary to use this wisely.
+        // This is necessary because we keep state in some operations.
+        // We are not using this for fault-tolerance. For that, we use Kafka offset @see commitOffset
+
         streamingContext.checkpoint(prop.getProperty("com.iot.app.spark.checkpoint.dir"));
         SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
         Map<TopicPartition, Long> offsets = getOffsets(parqueFile, sparkSession);
@@ -121,6 +127,7 @@ public class StreamingProcessor implements Serializable {
 
     /**
      * Commit the ack to kafka after process have completed
+     * This is our fault-tolerance implementation
      *
      * @param directKafkaStream
      */

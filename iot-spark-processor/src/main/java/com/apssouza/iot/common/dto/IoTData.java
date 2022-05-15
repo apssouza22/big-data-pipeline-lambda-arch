@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 /**
  * Class to represent the IoT vehicle data.
  *
- * @author abaghel
  */
 public class IoTData  implements Serializable {
 

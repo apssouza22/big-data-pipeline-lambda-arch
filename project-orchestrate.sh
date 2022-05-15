@@ -8,8 +8,6 @@
 # usage:          ./project-orchestrate.sh
 ########################################################################
 
-set -ex
-
 # Create casandra schema
 docker exec cassandra-iot cqlsh --username cassandra --password cassandra  -f /schema.cql
 

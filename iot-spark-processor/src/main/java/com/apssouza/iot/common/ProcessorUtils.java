@@ -6,9 +6,10 @@ import java.util.Properties;
 
 public class ProcessorUtils {
 
-    public static SparkConf getSparkConf(Properties prop) {
+    public static SparkConf getSparkConf(Properties prop, String appName) {
+
         var sparkConf = new SparkConf()
-                .setAppName(prop.getProperty("com.iot.app.spark.app.name"))
+                .setAppName(appName)
                 .setMaster(prop.getProperty("com.iot.app.spark.master"))
                 .set("spark.cassandra.connection.host", prop.getProperty("com.iot.app.cassandra.host"))
                 .set("spark.cassandra.connection.port", prop.getProperty("com.iot.app.cassandra.port"))
