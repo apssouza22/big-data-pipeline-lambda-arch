@@ -47,8 +47,8 @@ The streaming part of the project was done from iot-traffic-project [InfoQ](http
 * Run the traffic producer `java -jar iot-kafka-producer/target/iot-kafka-producer-1.0.0.jar`
 * Run the service layer (Web app) `java -jar iot-springboot-dashboard/target/iot-springboot-dashboard-1.0.0.jar` 
 * Access the dashboard with the data http://localhost:3000/
-* Run batch job `docker exec spark-master /spark/bin/spark-submit --class com.apssouza.iot.batch.BatchProcessor  --master spark://localhost:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar`
-* Run ML job `docker exec spark-master /spark/bin/spark-submit --class com.apssouza.iot.ml.SpeedPrediction  --master spark://localhost:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar`
+* Run the batch job `docker exec spark-master /spark/bin/spark-submit --class com.apssouza.iot.batch.BatchProcessor  --master spark://localhost:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar`
+* Run the ML job `docker exec spark-master /spark/bin/spark-submit --class com.apssouza.iot.ml.SpeedPrediction  --master spark://localhost:7077 /opt/spark-data/iot-spark-processor-1.0.0.jar`
 
 ### Miscellaneous
 
@@ -66,7 +66,7 @@ http://localhost:8081 Slave
 
 ### HDFS
 
-Comands https://hortonworks.com/tutorial/manage-files-on-hdfs-via-cli-ambari-files-view/section/1/
+Commands https://hortonworks.com/tutorial/manage-files-on-hdfs-via-cli-ambari-files-view/section/1/
 
 Open a file - http://localhost:50070/webhdfs/v1/path/to/file/file.csv?op=open
 
