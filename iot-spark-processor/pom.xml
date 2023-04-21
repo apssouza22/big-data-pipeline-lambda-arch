@@ -8,7 +8,7 @@
     <name>IoT Spark Processor</name>
 
     <properties>
-        <spark-version>3.1.0</spark-version>
+        <spark-version>3.4.0</spark-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
